@@ -1,13 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const disasterController = require("../../controllers/disasterController/DisasterController");
-// const { protect } = require("../middlewares/auth.middleware");
-// const { authorizeRoles } = require("../middlewares/role.middleware");
+const { validate } = require("../middlewares/validationMiddleware");
+const {
+  createDisasterValidation,
+} = require("../../validators/disasterValidator");
 
-// Create disaster (Admin/Authority)
-router.post("/", disasterController.createDisaster);
+// Create disaster (with validation)
+router.post(
+  "/",
+  createDisasterValidation,
+  validate,
+  disasterController.createDisaster
+);
 
-// Get all disasters (Public)
+// Get all disasters
 router.get("/", disasterController.getAllDisasters);
 
 // Get single disaster
