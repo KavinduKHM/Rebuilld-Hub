@@ -1,9 +1,33 @@
 const Disaster = require("../../models/disasterModel/DisasterModel");
 
+const getSuggestedVolunteerCount = (severityLevel) => {
+  switch (severityLevel) {
+    case "Low":
+      return 5;
+    case "Medium":
+      return 15;
+    case "High":
+      return 30;
+    case "Critical":
+      return 50;
+    default:
+      return 10;
+  }
+};
+
 exports.createDisaster = async (req, res) => {
   try {
+    const body = { ...req.body };
+
+    // Auto-suggest volunteer count if not provided, based on severity level
+    if (!body.suggestedVolunteerCount) {
+      body.suggestedVolunteerCount = getSuggestedVolunteerCount(
+        body.severityLevel || "Medium"
+      );
+    }
+
     const disaster = await Disaster.create({
-      ...req.body,
+      ...body,
       createdBy: req.user?.id,
     });
 

@@ -20,6 +20,13 @@ const disasterSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    requiredSkills: {
+      type: [String],
+      default: [],
+    },
+    suggestedVolunteerCount: {
+      type: Number,
+    },
     severityLevel: {
       type: String,
       enum: ["Low", "Medium", "High", "Critical"],

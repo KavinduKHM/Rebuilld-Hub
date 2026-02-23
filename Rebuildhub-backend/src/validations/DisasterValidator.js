@@ -18,6 +18,21 @@ exports.createDisasterValidation = [
     .isIn(["Low", "Medium", "High", "Critical"])
     .withMessage("Invalid severity level"),
 
+  body("requiredSkills")
+    .optional()
+    .isArray()
+    .withMessage("requiredSkills must be an array of strings"),
+
+  body("requiredSkills.*")
+    .optional()
+    .isString()
+    .withMessage("Each required skill must be a string"),
+
+  body("suggestedVolunteerCount")
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage("suggestedVolunteerCount must be a positive integer"),
+
   body("location.latitude")
     .optional()
     .isFloat()

@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const disasterController = require("../../controllers/disasterController/DisasterController");
-const { validate } = require("../middlewares/validationMiddleware");
+const { validate } = require("../../middlewares/ValidationMiddleware");
 const {
   createDisasterValidation,
-} = require("../../validators/disasterValidator");
+} = require("../../validations/DisasterValidator");
 
 // Create disaster (with validation)
 router.post(
