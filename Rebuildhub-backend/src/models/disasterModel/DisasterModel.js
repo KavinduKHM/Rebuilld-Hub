@@ -20,13 +20,6 @@ const disasterSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    requiredSkills: {
-      type: [String],
-      default: [],
-    },
-    suggestedVolunteerCount: {
-      type: Number,
-    },
     severityLevel: {
       type: String,
       enum: ["Low", "Medium", "High", "Critical"],
@@ -37,6 +30,11 @@ const disasterSchema = new mongoose.Schema(
       enum: ["Active", "Under Assessment", "Resolved"],
       default: "Active",
     },
+    images: [
+      {
+        type: String, // Cloudinary URLs
+      },
+    ],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

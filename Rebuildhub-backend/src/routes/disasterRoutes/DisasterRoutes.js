@@ -5,14 +5,10 @@ const { validate } = require("../../middlewares/ValidationMiddleware");
 const {
   createDisasterValidation,
 } = require("../../validations/DisasterValidator");
+const upload = require("../../middlewares/uploadMiddleware");
 
 // Create disaster (with validation)
-router.post(
-  "/",
-  createDisasterValidation,
-  validate,
-  disasterController.createDisaster
-);
+router.post("/", upload.array("images", 5), disasterController.createDisaster);
 
 // Get all disasters
 router.get("/", disasterController.getAllDisasters);
