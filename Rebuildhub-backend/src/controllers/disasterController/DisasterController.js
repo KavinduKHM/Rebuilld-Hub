@@ -46,7 +46,7 @@ exports.createDisaster = async (req, res) => {
       location: disaster.location,
       images: imageUrls, // Same images as verification proof
       verificationStatus: "Verified",
-      estimatedLoss: calculateEstimatedLoss(disaster.severityLevel),
+      estimatedLoss: estimateLoss(disaster.severityLevel),
     });
 
     res.status(201).json({
