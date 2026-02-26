@@ -1,20 +1,31 @@
 {
   "name": "rebuildhub-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js",
+    "start": "node server.js"
   },
   "author": "Kavindu",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.13.5",
+    "bcryptjs": "^3.0.3",
     "cloudinary": "^2.9.0",
-    "multer": "^2.0.2"
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.2.1",
+    "multer": "^2.0.2",
+    "streamifier": "^0.1.1"
   },
   "devDependencies": {
     "jest": "^30.2.0",
-    "nodemon": "^3.1.13",
+    "nodemon": "^3.1.14",
     "supertest": "^7.2.2"
   }
 }
