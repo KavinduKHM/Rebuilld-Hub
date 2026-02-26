@@ -1,8 +1,9 @@
 {
   "name": "rebuildhub-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
     "start": "node server.js"
   },
@@ -18,6 +19,11 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.2",
     "multer": "^2.0.2"
+    "express-validator": "^7.3.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.2.1",
+    "multer": "^2.0.2",
+    "streamifier": "^0.1.1"
   },
   "devDependencies": {
     "jest": "^30.2.0",
