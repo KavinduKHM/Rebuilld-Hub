@@ -1,6 +1,8 @@
 const Disaster = require("../../models/disasterModel/DisasterModel");
 const { uploadToCloudinary } = require("../../services/disasterService/cloudinaryService");
 const DamageReport = require("../../models/disasterModel/DamageReportModel");
+const mapService = require("../../services/disasterService/mapService");
+
 
 const getSuggestedVolunteerCount = (severityLevel) => {
   switch (severityLevel) {
@@ -48,13 +50,33 @@ exports.createDisaster = async (req, res) => {
       verificationStatus: "Verified",
       estimatedLoss: estimateLoss(disaster.severityLevel),
     });
+    const mapLink = mapService.generateGoogleMapLink(
+    disaster.location?.latitude,
+    disaster.location?.longitude
+     );
+
+    const embedMapLink = mapService.generateEmbedMapLink(
+    disaster.location?.latitude,
+    disaster.location?.longitude
+    );
+
+        
+    const latitude = disaster.location?.latitude;
+    const longitude = disaster.location?.longitude;
+
+    const googleMapView = mapService.generateGoogleMapLink(latitude, longitude);
+    const googleMapEmbed = mapService.generateEmbedMapLink(latitude, longitude);
 
     res.status(201).json({
-      success: true,
-      message: "Disaster created and damage report auto-generated successfully",
-      disaster,
-      autoDamageReport,
-    });
+    success: true,
+    message: "Disaster created and damage report auto-generated successfully",
+    disaster,
+    autoDamageReport,
+    googleMap: {
+    viewLocation: googleMapView,
+    embedLocation: googleMapEmbed,
+   },
+  });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
