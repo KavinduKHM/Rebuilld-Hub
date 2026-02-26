@@ -38,18 +38,6 @@ exports.createDisaster = async (req, res) => {
       createdBy: req.user?.id || null,
     });
 
-    // AUTO GENERATE DAMAGE REPORT (CORE REQUIREMENT)
-    const autoDamageReport = await DamageReport.create({
-      disasterId: disaster._id, // Must match ObjectId
-      reporterName: "System Auto Generated",
-      contactNumber: "N/A",
-      damageType: "Infrastructure",
-      damageDescription: `Auto-generated damage assessment for ${disaster.title} based on uploaded disaster evidence and severity level.`,
-      location: disaster.location,
-      images: imageUrls, // Same images as verification proof
-      verificationStatus: "Verified",
-      estimatedLoss: estimateLoss(disaster.severityLevel),
-    });
     const mapLink = mapService.generateGoogleMapLink(
     disaster.location?.latitude,
     disaster.location?.longitude
@@ -67,16 +55,30 @@ exports.createDisaster = async (req, res) => {
     const googleMapView = mapService.generateGoogleMapLink(latitude, longitude);
     const googleMapEmbed = mapService.generateEmbedMapLink(latitude, longitude);
 
+    // AUTO GENERATE DAMAGE REPORT (CORE REQUIREMENT)
+    const autoDamageReport = await DamageReport.create({
+      disasterId: disaster._id, // Must match ObjectId
+      reporterName: "System Auto Generated",
+      contactNumber: "N/A",
+      damageType: "Infrastructure",
+      damageDescription: `Auto-generated damage assessment for ${disaster.title} based on uploaded disaster evidence and severity level.`,
+      location: disaster.location,
+      images: imageUrls, // Same images as verification proof
+      verificationStatus: "Verified",
+      estimatedLoss: estimateLoss(disaster.severityLevel),
+      googleMap: {
+      viewLocation: googleMapView,
+      embedLocation: googleMapEmbed,
+      },
+    });
+    
+
     res.status(201).json({
-    success: true,
-    message: "Disaster created and damage report auto-generated successfully",
-    disaster,
-    autoDamageReport,
-    googleMap: {
-    viewLocation: googleMapView,
-    embedLocation: googleMapEmbed,
-   },
-  });
+      success: true,
+      message: "Disaster created and damage report auto-generated successfully",
+      disaster,
+      autoDamageReport,
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

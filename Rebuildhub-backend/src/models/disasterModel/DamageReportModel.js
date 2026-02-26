@@ -39,6 +39,10 @@ const damageReportSchema = new mongoose.Schema(
       type: Number,
       min: 0,
     },
+    googleMap: {
+    viewLocation: String,
+    embedLocation: String,
+  },
   },
   { timestamps: true }
 );
