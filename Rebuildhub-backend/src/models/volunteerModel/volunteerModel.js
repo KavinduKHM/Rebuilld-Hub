@@ -53,8 +53,9 @@ const volunteerSchema = new mongoose.Schema(
 );
 
 // Auto-increment volunteerId before save
-volunteerSchema.pre("save", async function (next) {
-  if (this.volunteerId) return next();
+volunteerSchema.pre("save", async function () {
+  // If volunteerId already set, nothing to do
+  if (this.volunteerId) return;
 
   try {
     const counter = await Counter.findOneAndUpdate(
@@ -63,9 +64,9 @@ volunteerSchema.pre("save", async function (next) {
       { new: true, upsert: true },
     );
     this.volunteerId = counter.seq;
-    next();
   } catch (error) {
-    next(error);
+    // Let the error bubble up to Mongoose (avoid calling next() in async hook)
+    throw error;
   }
 });
 

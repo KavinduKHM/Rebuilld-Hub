@@ -9,9 +9,15 @@ import {
   deleteVolunteer,
 } from "../../controllers/volunteerController/volunteerController.js";
 
-console.log("✅ Volunteer routes loaded");
+// Import validation
+import {
+  registerVolunteerValidation,
+  validate,
+} from "../../validations/volunteerValidation/volunteerValidation.js";
 
-// Test routes (remove these later if not needed)
+console.log("✅ Volunteer routes loaded with validation");
+
+// Test routes
 router.get("/test", (req, res) => {
   res.status(200).json({
     success: true,
@@ -29,11 +35,16 @@ router.get("/debug", (req, res) => {
 });
 
 // ===== MAIN CRUD ROUTES =====
-// GET all volunteers - This will now show database data
+// GET all volunteers
 router.get("/", getAllVolunteers);
 
-// POST register new volunteer
-router.post("/register", registerVolunteer);
+// POST register new volunteer WITH VALIDATION
+router.post(
+  "/register",
+  registerVolunteerValidation, // Array of validation middlewares
+  validate, // Error checker that calls next()
+  registerVolunteer, // Your controller
+);
 
 // GET volunteer by ID
 router.get("/:id", getVolunteerById);
