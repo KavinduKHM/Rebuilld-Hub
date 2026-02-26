@@ -6,12 +6,12 @@ app.use(express.json());
 // Routes
 const inventoryRoutes = require("./routes/resourceRoutes/inventoryRoute");
 const donationRoutes = require("./routes/resourceRoutes/donationRoute");
-
+const paymentRoutes = require("./routes/paymentRoutes/paymentRoute");
 
 // Use routes
 app.use("/Rebuildhub/inventory", inventoryRoutes);
 app.use("/Rebuildhub/donations", donationRoutes);
-
+app.use("/Rebuildhub/payment", paymentRoutes);
 
 // Error handling middleware 
 app.use((err, req, res, next) => {
