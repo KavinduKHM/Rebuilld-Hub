@@ -6,18 +6,46 @@ import dotenv from "dotenv";
 import volunteerRoutes from "./routes/volunteerRoutes/volunteerRoutes.js";
 import eventRoutes from "./routes/eventRoutes/eventRoutes.js";
 
-// OTHER TEAM MEMBER'S routes (add these)
-import disasterRoutes from "./routes/disasterRoutes/DisasterRoutes.js";
-import damageReportRoutes from "./routes/disasterRoutes/DamageReportRoutes.js";
-import nasaRoutes from "./routes/disasterRoutes/nasaRoutes.js";
-import authRoutes from "./routes/authRoutes/authRoutes.js";
-import aidRoutes from "./routes/aidRoutes/aidRoutes.js";
-import weatherRoutes from "./routes/weatherRoutes/weatherRoutes.js";
-
 // Load env
 dotenv.config();
 
 const app = express();
+
+const loadOptionalRoute = async (modulePath, routeName) => {
+  try {
+    const routeModule = await import(modulePath);
+    return routeModule.default || null;
+  } catch (error) {
+    console.warn(`⚠️ Skipping ${routeName}: ${error.message}`);
+    return null;
+  }
+};
+
+// OTHER TEAM MEMBER'S routes (optional load so app can boot even if some are CommonJS)
+const disasterRoutes = await loadOptionalRoute(
+  "./routes/disasterRoutes/DisasterRoutes.js",
+  "disasterRoutes",
+);
+const damageReportRoutes = await loadOptionalRoute(
+  "./routes/disasterRoutes/DamageReportRoutes.js",
+  "damageReportRoutes",
+);
+const nasaRoutes = await loadOptionalRoute(
+  "./routes/disasterRoutes/nasaRoutes.js",
+  "nasaRoutes",
+);
+const authRoutes = await loadOptionalRoute(
+  "./routes/authRoutes/authRoutes.js",
+  "authRoutes",
+);
+const aidRoutes = await loadOptionalRoute(
+  "./routes/aidRoutes/aidRoutes.js",
+  "aidRoutes",
+);
+const weatherRoutes = await loadOptionalRoute(
+  "./routes/weatherRoutes/weatherRoutes.js",
+  "weatherRoutes",
+);
 
 // CORS configuration - combined version
 app.use(
@@ -49,12 +77,12 @@ app.use("/api/events", eventRoutes);
 console.log("✅ Event routes mounted at /api/events");
 
 // OTHER TEAM MEMBER'S routes
-app.use("/api/disasters", disasterRoutes);
-app.use("/api/reports", damageReportRoutes);
-app.use("/api/external", nasaRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/aids", aidRoutes);
-app.use("/api/weather", weatherRoutes);
+if (disasterRoutes) app.use("/api/disasters", disasterRoutes);
+if (damageReportRoutes) app.use("/api/reports", damageReportRoutes);
+if (nasaRoutes) app.use("/api/external", nasaRoutes);
+if (authRoutes) app.use("/api/auth", authRoutes);
+if (aidRoutes) app.use("/api/aids", aidRoutes);
+if (weatherRoutes) app.use("/api/weather", weatherRoutes);
 
 // Health check with ALL endpoints
 app.get("/", (req, res) => {
