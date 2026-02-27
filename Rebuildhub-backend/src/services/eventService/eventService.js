@@ -35,6 +35,32 @@ class EventService {
     return this.categories[normalized] ? normalized : null;
   }
 
+  buildLocationParams(location = "worldwide") {
+    const params = {};
+
+    if (location === "srilanka") {
+      params.bbox = "79.6,5.8,81.9,9.8";
+    } else if (location && location.includes(",")) {
+      params.bbox = location;
+    }
+
+    return params;
+  }
+
+  buildDateParams(days) {
+    const parsedDays = Number(days);
+    if (!Number.isFinite(parsedDays) || parsedDays <= 0) {
+      return {};
+    }
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parsedDays);
+
+    return {
+      startDate: startDate.toISOString().slice(0, 10),
+    };
+  }
+
   // Fetch events with optional filters
   async fetchEvents(params = {}) {
     try {
@@ -272,6 +298,121 @@ class EventService {
             ? item.magnitudeUnit
             : undefined,
       }));
+  }
+
+  buildLiveEvent(nasaEvent, location = "worldwide") {
+    const parsed = this.parseEventData(nasaEvent, location);
+
+    return {
+      id: nasaEvent.id,
+      title: parsed.title,
+      description: parsed.description,
+      category: parsed.category,
+      categoryId: parsed.categoryId,
+      status: parsed.status,
+      location: parsed.location,
+      countries: parsed.countries,
+      districts: parsed.districts,
+      magnitude: parsed.magnitude,
+      magnitudeUnit: parsed.magnitudeUnit,
+      dateStarted: parsed.dateStarted,
+      dateEnded: parsed.dateEnded,
+      sources: parsed.sources,
+      geometry: parsed.geometry,
+      requiredSkills: parsed.requiredSkills,
+    };
+  }
+
+  toGeoJSON(events = []) {
+    return {
+      type: "FeatureCollection",
+      features: events
+        .filter(
+          (event) =>
+            event?.location?.type === "Point" &&
+            Array.isArray(event?.location?.coordinates) &&
+            event.location.coordinates.length >= 2,
+        )
+        .map((event) => ({
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: event.location.coordinates,
+          },
+          properties: {
+            id: event.id,
+            title: event.title,
+            category: event.category,
+            categoryId: event.categoryId,
+            status: event.status,
+            magnitude: event.magnitude,
+            magnitudeUnit: event.magnitudeUnit,
+            dateStarted: event.dateStarted,
+            dateEnded: event.dateEnded,
+          },
+        })),
+    };
+  }
+
+  async fetchLiveEvents(filters = {}) {
+    const {
+      location = "worldwide",
+      category = "all",
+      days,
+      limit = 100,
+    } = filters;
+
+    const baseParams = {
+      ...this.buildLocationParams(location),
+      ...this.buildDateParams(days),
+    };
+
+    const selectedCategory = this.normalizeCategory(category);
+    const categoriesToFetch = selectedCategory
+      ? [selectedCategory]
+      : this.defaultCategories;
+
+    const responses = await Promise.all(
+      categoriesToFetch.map((categoryKey) =>
+        this.fetchEvents({
+          ...baseParams,
+          category: categoryKey,
+          status: "open",
+        }).catch((error) => {
+          console.error(`❌ Failed category ${categoryKey}:`, error.message);
+          return { events: [] };
+        }),
+      ),
+    );
+
+    const eventMap = new Map();
+    for (const response of responses) {
+      const events = Array.isArray(response?.events) ? response.events : [];
+      for (const nasaEvent of events) {
+        if (!eventMap.has(nasaEvent.id)) {
+          eventMap.set(nasaEvent.id, this.buildLiveEvent(nasaEvent, location));
+        }
+      }
+    }
+
+    const parsedLimit = Math.max(1, Math.min(Number(limit) || 100, 500));
+    const liveEvents = Array.from(eventMap.values())
+      .sort(
+        (a, b) =>
+          new Date(b.dateStarted || 0).getTime() -
+          new Date(a.dateStarted || 0).getTime(),
+      )
+      .slice(0, parsedLimit);
+
+    return {
+      success: true,
+      source: "NASA EONET (LIVE)",
+      location,
+      category,
+      categories: categoriesToFetch,
+      count: liveEvents.length,
+      data: liveEvents,
+    };
   }
 
   // Extract Sri Lanka districts (simplified version)
