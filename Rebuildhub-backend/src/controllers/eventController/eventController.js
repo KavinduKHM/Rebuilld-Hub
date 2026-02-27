@@ -1,9 +1,9 @@
-import eventService from "../../services/eventService/eventService.js";
-import Volunteer from "../../models/volunteerModel/volunteerModel.js";
-import Event from "../../models/eventModel/eventModel.js";
+const eventService = require("../../services/eventService/eventService");
+const Volunteer = require("../../models/volunteerModel/volunteerModel");
+const Event = require("../../models/eventModel/eventModel");
 
 // Fetch and store events from NASA
-export const fetchAndStoreEvents = async (req, res) => {
+const fetchAndStoreEvents = async (req, res) => {
   try {
     const { location = "worldwide", category = "all" } = req.query;
 
@@ -30,7 +30,7 @@ export const fetchAndStoreEvents = async (req, res) => {
 };
 
 // Get events for volunteers - FIXED VERSION
-export const getEvents = async (req, res) => {
+const getEvents = async (req, res) => {
   try {
     const volunteerId = req.user?.id; // If you have authentication
     const {
@@ -98,7 +98,7 @@ export const getEvents = async (req, res) => {
 };
 
 // Get single event by ID
-export const getEventById = async (req, res) => {
+const getEventById = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
 
@@ -123,7 +123,7 @@ export const getEventById = async (req, res) => {
 };
 
 // Volunteer expresses interest in an event
-export const expressInterest = async (req, res) => {
+const expressInterest = async (req, res) => {
   try {
     // Check if volunteer exists and is verified
     const volunteer = await Volunteer.findOne({
@@ -158,7 +158,7 @@ export const expressInterest = async (req, res) => {
 };
 
 // Get event categories
-export const getCategories = async (req, res) => {
+const getCategories = async (req, res) => {
   try {
     const categories = [
       { id: "wildfires", name: "Wildfires" },
@@ -185,7 +185,7 @@ export const getCategories = async (req, res) => {
 };
 
 // Get live events directly from NASA EONET (no DB write)
-export const getLiveEvents = async (req, res) => {
+const getLiveEvents = async (req, res) => {
   try {
     const {
       location = "worldwide",
@@ -212,7 +212,7 @@ export const getLiveEvents = async (req, res) => {
 };
 
 // Live Sri Lanka events shortcut endpoint
-export const getLiveSriLankaEvents = async (req, res) => {
+const getLiveSriLankaEvents = async (req, res) => {
   try {
     const { category = "all", days = 30, limit = 100 } = req.query;
 
@@ -234,7 +234,7 @@ export const getLiveSriLankaEvents = async (req, res) => {
 };
 
 // Live events as GeoJSON for map rendering
-export const getLiveEventsMap = async (req, res) => {
+const getLiveEventsMap = async (req, res) => {
   try {
     const {
       location = "worldwide",
@@ -268,7 +268,7 @@ export const getLiveEventsMap = async (req, res) => {
 };
 
 // Server-rendered map viewer (no frontend folder/files)
-export const getLiveEventsMapViewer = async (req, res) => {
+const getLiveEventsMapViewer = async (req, res) => {
   const { location = "worldwide", category = "all", days = 30, limit = 200 } =
     req.query;
 
@@ -390,4 +390,16 @@ export const getLiveEventsMapViewer = async (req, res) => {
   </script>
 </body>
 </html>`);
+};
+
+module.exports = {
+  fetchAndStoreEvents,
+  getEvents,
+  getEventById,
+  expressInterest,
+  getCategories,
+  getLiveEvents,
+  getLiveSriLankaEvents,
+  getLiveEventsMap,
+  getLiveEventsMapViewer,
 };

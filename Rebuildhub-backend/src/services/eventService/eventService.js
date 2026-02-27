@@ -1,5 +1,5 @@
-import axios from "axios";
-import Event from "../../models/eventModel/eventModel.js";
+const axios = require("axios");
+const Event = require("../../models/eventModel/eventModel");
 
 class EventService {
   constructor() {
@@ -558,4 +558,4 @@ class EventService {
   }
 }
 
-export default new EventService();
+module.exports = new EventService();

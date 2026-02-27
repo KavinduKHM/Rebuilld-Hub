@@ -1,5 +1,5 @@
-import express from "express";
-import {
+const express = require("express");
+const {
   fetchAndStoreEvents,
   getEvents,
   getEventById,
@@ -9,11 +9,10 @@ import {
   getLiveSriLankaEvents,
   getLiveEventsMap,
   getLiveEventsMapViewer,
-} from "../../controllers/eventController/eventController.js";
+} = require("../../controllers/eventController/eventController");
 
 const router = express.Router();
 
-console.log("✅ Event routes loaded");
 
 // Public routes (for demo/development)
 // In production, add authentication middleware
@@ -49,4 +48,4 @@ router.get("/:id", getEventById);
 // POST /api/events/:id/interest
 router.post("/:id/interest", expressInterest);
 
-export default router;
+module.exports = router;

@@ -1,4 +1,4 @@
-import volunteerService from "../../services/volunteerService/volunteerService.js";
+const volunteerService = require("../../services/volunteerService/volunteerService");
 
 // Register volunteer
 const registerVolunteer = async (req, res) => {
@@ -102,7 +102,7 @@ const deleteVolunteer = async (req, res) => {
   }
 };
 
-export {
+module.exports = {
   registerVolunteer,
   getAllVolunteers,
   getVolunteerById,

@@ -1,4 +1,4 @@
-import Volunteer from "../../models/volunteerModel/volunteerModel.js";
+const Volunteer = require("../../models/volunteerModel/volunteerModel");
 
 const registerVolunteer = async (data) => {
   const { name, phone, district, skills } = data;
@@ -61,7 +61,7 @@ const deleteVolunteer = async (id) => {
   }
 };
 
-export default {
+module.exports = {
   registerVolunteer,
   getAllVolunteers,
   getVolunteerById,

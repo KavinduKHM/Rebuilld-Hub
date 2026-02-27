@@ -1,21 +1,20 @@
-import express from "express";
+const express = require("express");
 const router = express.Router();
 
-import {
+const {
   registerVolunteer,
   getAllVolunteers,
   getVolunteerById,
   updateVolunteer,
   deleteVolunteer,
-} from "../../controllers/volunteerController/volunteerController.js";
+} = require("../../controllers/volunteerController/volunteerController");
 
 // Import validation
-import {
+const {
   registerVolunteerValidation,
   validate,
-} from "../../validations/volunteerValidation/volunteerValidation.js";
+} = require("../../validations/volunteerValidation/volunteerValidation");
 
-console.log("✅ Volunteer routes loaded with validation");
 
 // Test routes
 router.get("/test", (req, res) => {
@@ -55,4 +54,4 @@ router.put("/:id", updateVolunteer);
 // DELETE volunteer
 router.delete("/:id", deleteVolunteer);
 
-export default router;
+module.exports = router;

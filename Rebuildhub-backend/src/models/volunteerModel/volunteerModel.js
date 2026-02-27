@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 // Counter schema for auto-increment
 const counterSchema = new mongoose.Schema({
@@ -71,4 +71,4 @@ volunteerSchema.pre("save", async function () {
 });
 
 const Volunteer = mongoose.model("Volunteer", volunteerSchema);
-export default Volunteer;
+module.exports = Volunteer;
