@@ -3,66 +3,94 @@ const router = express.Router();
 const aidController = require("../../controllers/aidController/aidController");
 const authMiddleware = require("../../middlewares/authMiddleware");
 const roleMiddleware = require("../../middlewares/roleMiddleware");
+const Inventory = require("../../models/inventoryModel/Inventory");
 
-// Only seeker can create aid
+// Create aid: allowed for seeker, inventory_manager, admin
 router.post(
-    "/create",
+    "/",
     authMiddleware,
-    roleMiddleware("seeker"),
-    (req, res) => {
-        res.json({ message: "Aid created successfully" });
-    }
+    roleMiddleware("seeker", "inventory_manager", "admin"),
+    aidController.createAid
 );
 
-// Admin + Inventory Manager can update
-router.put(
-    "/update/:id",
-    authMiddleware,
-    roleMiddleware("admin", "inventory_manager"),
-    (req, res) => {
-        res.json({ message: "Aid updated successfully" });
-    }
-);
-
-// Any logged-in user can view
+// Get all aids: any authenticated user
 router.get(
     "/",
     authMiddleware,
-    (req, res) => {
-        res.json({ message: "Aid list visible" });
+    aidController.getAllAids
+);
+
+// Get specific aid by ID: any authenticated user (admin can also access)
+router.get(
+    "/:id",
+    authMiddleware,
+    aidController.getAidById
+);
+
+// Inventory manager: list pending inventory checks (inventory_manager + admin can view)
+router.get(
+    "/inventory/pending",
+    authMiddleware,
+    roleMiddleware("inventory_manager", "admin"),
+    aidController.getPendingInventory
+);
+
+// Inventory check: only inventory_manager (admin may be permitted if desired)
+router.put(
+    "/:id/inventory-check",
+    authMiddleware,
+    roleMiddleware("inventory_manager"),
+    aidController.inventoryCheck
+);
+
+// Admin decision: only admin
+router.put(
+    "/:id/admin-decision",
+    authMiddleware,
+    roleMiddleware("admin"),
+    aidController.adminDecision
+);
+
+// Update distribution status: only admin
+router.put(
+    "/:id/distribution",
+    authMiddleware,
+    roleMiddleware("admin"),
+    aidController.updateDistribution
+);
+
+// Inventory manager: manually decrement stock after dispatch
+router.put(
+    "/:id/inventory-decrement",
+    authMiddleware,
+    roleMiddleware("inventory_manager", "admin"),
+    aidController.inventoryDecrement
+);
+
+// Admin: delete aid request
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("admin"),
+    aidController.deleteAid
+);
+
+// Create inventory (inventory manager or admin)
+router.post(
+    "/inventory",
+    authMiddleware,
+    roleMiddleware("inventory_manager", "admin"),
+    async (req, res) => {
+        try {
+            const item = await Inventory.create(req.body);
+            res.json(item);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
     }
 );
 
-module.exports = router;
-
-router.post("/", aidController.createAid);
-router.get("/", aidController.getAllAids);
-router.get("/:id", aidController.getAidById);
-router.put("/:id/inventory-check", aidController.inventoryCheck);
-router.put("/:id/admin-decision", aidController.adminDecision);
-router.put("/:id/distribution", aidController.updateDistribution);
-
-// Inventory manager: list pending inventory checks
-router.get("/inventory/pending", aidController.getPendingInventory);
-
-// Inventory manager: manually decrement stock after dispatch
-router.put("/:id/inventory-decrement", aidController.inventoryDecrement);
-
-// Admin: delete aid request
-router.delete("/:id", aidController.deleteAid);
-
-const Inventory = require("../../models/inventoryModel/Inventory");
-
-router.post("/inventory", async (req, res) => {
-    const item = await Inventory.create(req.body);
-    res.json(item);
-});
-
-module.exports = router;
-
-// Debug helper: list routes under this router
-// Accessible at GET /api/aids/__routes
-// (kept for debugging; remove in production)
+// Debug helper: list routes under this router (kept for debugging)
 router.get("/__routes", (req, res) => {
     try {
         const list = [];
@@ -77,3 +105,5 @@ router.get("/__routes", (req, res) => {
         res.status(500).json({ message: e.message });
     }
 });
+
+module.exports = router;
