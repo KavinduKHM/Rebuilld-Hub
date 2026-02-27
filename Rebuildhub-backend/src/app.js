@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import volunteerRoutes from "./routes/volunteerRoutes/volunteerRoutes.js";
+import eventRoutes from "./routes/eventRoutes/eventRoutes.js"; // Add this
 
 // Load env
 dotenv.config();
@@ -24,6 +25,10 @@ if (volunteerRoutes) {
   app.use("/api/volunteers", volunteerRoutes);
   console.log("✅ Volunteer routes mounted at /api/volunteers");
 }
+
+// Mount event routes
+app.use("/api/events", eventRoutes);
+console.log("✅ Event routes mounted at /api/events");
 
 // Health check
 app.get("/", (req, res) => {
