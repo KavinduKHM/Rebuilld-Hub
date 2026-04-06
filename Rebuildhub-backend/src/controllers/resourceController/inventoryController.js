@@ -20,7 +20,7 @@ exports.getAllInventory = async (req, res) => {
 
 exports.getInventoryById = async (req, res) => {
   try {
-    const inv = await inventoryService.getInventoryById(req.params.id);
+    const inv = await inventoryService.getInventoryById(req.params.id.trim());
     res.status(200).json(inv);
   } catch (err) {
     res.status(404).json({ message: err.message });
@@ -30,7 +30,7 @@ exports.getInventoryById = async (req, res) => {
 exports.updateInventory = async (req, res) => {
   try {
     const inv = await inventoryService.updateInventory(
-      req.params.id,
+      req.params.id.trim(),
       req.body
     );
     res.status(200).json(inv);
@@ -41,7 +41,7 @@ exports.updateInventory = async (req, res) => {
 
 exports.deleteInventory = async (req, res) => {
   try {
-    await inventoryService.deleteInventory(req.params.id);
+    await inventoryService.deleteInventory(req.params.id.trim());
     res.status(200).json({ message: "Inventory deleted successfully" });
   } catch (err) {
     res.status(404).json({ message: err.message });
