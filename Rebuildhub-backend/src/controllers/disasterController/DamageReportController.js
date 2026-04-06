@@ -1,4 +1,4 @@
-const damageService = require("../../services/disasterService/DamageReportService");
+const damageService = require("../../services/disasterService/damageReportService");
 const uploadToCloudinary = require("../../utils/cloudinaryUpload");
 const DamageReport = require("../../models/disasterModel/DamageReportModel");
 
