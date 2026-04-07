@@ -6,7 +6,7 @@ const Home = () => {
   return (
     <main className="theme-shell">
       <section className="hero-section" id="dashboard">
-        <div className="container hero-stack">
+        <div className="container hero-grid">
           <div className="hero-copy">
             <span className="system-pill">System Online: Global Status Green</span>
             <h1>

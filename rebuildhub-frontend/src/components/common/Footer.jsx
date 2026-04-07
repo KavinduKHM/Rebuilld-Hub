@@ -8,8 +8,13 @@ const Footer = () => {
 					<div className="footer-brand">
 						<span className="brand-mark brand-mark--footer" aria-hidden="true">
 							<svg viewBox="0 0 24 24" fill="none">
-								<path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z" />
-								<path d="M12 7v10M8.5 12h7" />
+								<path d="M12 2.2 4.5 5.8v5.8c0 4.6 3 8.5 7.5 10.5 4.5-2 7.5-5.9 7.5-10.5V5.8L12 2.2Z" />
+								<path d="M8.1 11.2 12 8.4 15.9 11.2M8.1 11.2l2.5 5.2M15.9 11.2l-2.5 5.2M12 8.4v8" />
+								<circle cx="12" cy="8.4" r="0.85" fill="currentColor" />
+								<circle cx="8.1" cy="11.2" r="0.75" fill="currentColor" />
+								<circle cx="15.9" cy="11.2" r="0.75" fill="currentColor" />
+								<circle cx="10.6" cy="16.4" r="0.75" fill="currentColor" />
+								<circle cx="13.4" cy="16.4" r="0.75" fill="currentColor" />
 							</svg>
 						</span>
 						<strong>RebuildHub</strong>
