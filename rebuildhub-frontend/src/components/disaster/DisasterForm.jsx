@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createDisaster } from "../../services/disasterService";
+import LocationMapPicker from "./LocationMapPicker.jsx";
 
 const DisasterForm = () => {
   const navigate = useNavigate();
@@ -29,6 +30,16 @@ const DisasterForm = () => {
   };
 
   const handleFileChange = (e) => setImages(Array.from(e.target.files));
+
+  const handleLocationChange = (nextLocation) => {
+    setFormData((prev) => ({
+      ...prev,
+      location: {
+        ...prev.location,
+        ...nextLocation,
+      },
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -68,9 +79,10 @@ const DisasterForm = () => {
       <select name="severityLevel" onChange={handleChange}>
         <option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
       </select>
-      <input name="location.name" placeholder="Location Name" onChange={handleChange} />
-      <input name="location.latitude" placeholder="Latitude" type="number" step="any" onChange={handleChange} />
-      <input name="location.longitude" placeholder="Longitude" type="number" step="any" onChange={handleChange} />
+      <LocationMapPicker location={formData.location} onChange={handleLocationChange} />
+      <input name="location.name" placeholder="Location Name" value={formData.location.name} readOnly />
+      <input name="location.latitude" placeholder="Latitude" type="number" step="any" value={formData.location.latitude} readOnly />
+      <input name="location.longitude" placeholder="Longitude" type="number" step="any" value={formData.location.longitude} readOnly />
       <input type="file" multiple accept="image/*" onChange={handleFileChange} />
       <button type="submit" disabled={loading}>{loading ? "Creating..." : "Create Disaster"}</button>
     </form>
