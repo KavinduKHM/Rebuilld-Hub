@@ -36,62 +36,65 @@ const DamageReportDetails = () => {
   };
 
   if (loading) return <Loader />;
-  if (error) return <p className="error">{error}</p>;
+  if (error) return <p className="empty-state">{error}</p>;
   if (!report) return <p>Report not found</p>;
 
   return (
-    <div className="container">
-      <h2>Damage Report Details</h2>
-      <div className="card">
-        <p><strong>Disaster ID:</strong> {report.disasterId?._id || report.disasterId}</p>
-        <p><strong>Reporter Name:</strong> {report.reporterName}</p>
-        <p><strong>Contact Number:</strong> {report.contactNumber}</p>
-        <p><strong>Damage Type:</strong> {report.damageType}</p>
-        <p><strong>Description:</strong> {report.damageDescription}</p>
-        <p><strong>Estimated Loss:</strong> ${report.estimatedLoss?.toLocaleString()}</p>
-        <p><strong>Verification Status:</strong> 
-          <span style={{ 
-            color: report.verificationStatus === "Verified" ? "#2ecc71" : 
-                   report.verificationStatus === "Rejected" ? "#e74c3c" : "#f39c12",
-            marginLeft: "0.5rem"
-          }}>
-            {report.verificationStatus}
-          </span>
-        </p>
-        
-        {report.location && (report.location.latitude || report.location.longitude) && (
+    <div className="page-shell">
+      <div className="container detail-stack">
+        <div className="page-header">
           <div>
-            <strong>Location:</strong><br />
-            Lat: {report.location.latitude}, Lng: {report.location.longitude}<br />
-            Address: {report.location.address || "N/A"}
+            <span className="section-label">Damage Detail</span>
+            <h1 className="page-title">Damage Report Details</h1>
           </div>
-        )}
-
-        {report.googleMap?.viewLocation && (
-          <div style={{ marginTop: "1rem" }}>
-            <a href={report.googleMap.viewLocation} target="_blank" rel="noopener noreferrer" className="btn-primary">
-              Open in Google Maps
-            </a>
-          </div>
-        )}
-
-        {report.images && report.images.length > 0 && (
-          <div style={{ marginTop: "1rem" }}>
-            <strong>Evidence Images:</strong>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
-              {report.images.map((img, idx) => (
-                <img key={idx} src={img} alt="evidence" style={{ width: "150px", borderRadius: "8px" }} />
-              ))}
+        </div>
+        <div className="page-card detail-stack">
+          <p><strong>Disaster ID:</strong> {report.disasterId?._id || report.disasterId}</p>
+          <p><strong>Reporter Name:</strong> {report.reporterName}</p>
+          <p><strong>Contact Number:</strong> {report.contactNumber}</p>
+          <p><strong>Damage Type:</strong> {report.damageType}</p>
+          <p><strong>Description:</strong> {report.damageDescription}</p>
+          <p><strong>Estimated Loss:</strong> ${report.estimatedLoss?.toLocaleString()}</p>
+          <p><strong>Verification Status:</strong> 
+            <span className={`status-chip ${report.verificationStatus === "Verified" ? "status-chip--verified" : report.verificationStatus === "Rejected" ? "status-chip--rejected" : "status-chip--pending"}`}>
+              {report.verificationStatus}
+            </span>
+          </p>
+        
+          {report.location && (report.location.latitude || report.location.longitude) && (
+            <div>
+              <strong>Location:</strong><br />
+              Lat: {report.location.latitude}, Lng: {report.location.longitude}<br />
+              Address: {report.location.address || "N/A"}
             </div>
-          </div>
-        )}
+          )}
 
-        {role === "authority" && report.verificationStatus === "Pending" && (
-          <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem" }}>
-            <button onClick={() => handleVerify("Verified")} className="btn-primary">Verify Report</button>
-            <button onClick={() => handleVerify("Rejected")} className="btn-danger">Reject Report</button>
-          </div>
-        )}
+          {report.googleMap?.viewLocation && (
+            <div>
+              <a href={report.googleMap.viewLocation} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+                Open in Google Maps
+              </a>
+            </div>
+          )}
+
+          {report.images && report.images.length > 0 && (
+            <div>
+              <strong>Evidence Images:</strong>
+              <div className="media-grid" style={{ marginTop: "0.75rem" }}>
+                {report.images.map((img, idx) => (
+                  <img key={idx} src={img} alt="evidence" style={{ width: "150px", height: "120px" }} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {role === "authority" && report.verificationStatus === "Pending" && (
+            <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              <button onClick={() => handleVerify("Verified")} className="btn-primary">Verify Report</button>
+              <button onClick={() => handleVerify("Rejected")} className="btn-danger">Reject Report</button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

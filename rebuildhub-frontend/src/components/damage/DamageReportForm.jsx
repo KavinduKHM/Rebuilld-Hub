@@ -59,25 +59,37 @@ const DamageReportForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "500px", margin: "auto" }}>
-      <h2>Submit Damage Report</h2>
-      <select name="disasterId" onChange={handleChange} required>
-        <option value="">Select Disaster</option>
-        {disasters.map(d => <option key={d._id} value={d._id}>{d.title}</option>)}
-      </select>
-      <input name="reporterName" placeholder="Your Name" onChange={handleChange} required />
-      <input name="contactNumber" placeholder="Contact Number" onChange={handleChange} required />
-      <select name="damageType" onChange={handleChange}>
-        <option>Infrastructure</option><option>Housing</option><option>Medical</option><option>Agriculture</option><option>Other</option>
-      </select>
-      <textarea name="damageDescription" placeholder="Describe damage" onChange={handleChange} required />
-      <input name="estimatedLoss" placeholder="Estimated Loss ($)" type="number" onChange={handleChange} />
-      <input name="location.latitude" placeholder="Latitude" type="number" step="any" />
-      <input name="location.longitude" placeholder="Longitude" type="number" step="any" />
-      <input name="location.address" placeholder="Address" />
-      <input type="file" multiple accept="image/*" onChange={handleFileChange} />
-      <button type="submit" disabled={loading}>{loading ? "Submitting..." : "Submit Report"}</button>
-    </form>
+    <div className="page-shell">
+      <div className="container" style={{ maxWidth: "760px" }}>
+        <div className="page-header">
+          <div>
+            <span className="section-label">Damage Intake</span>
+            <h1 className="page-title">Submit Damage Report</h1>
+            <p className="page-subtitle">
+              Submit field damage details linked to an existing disaster record.
+            </p>
+          </div>
+        </div>
+        <form onSubmit={handleSubmit} className="page-card detail-stack">
+          <select name="disasterId" onChange={handleChange} required>
+            <option value="">Select Disaster</option>
+            {disasters.map(d => <option key={d._id} value={d._id}>{d.title}</option>)}
+          </select>
+          <input name="reporterName" placeholder="Your Name" onChange={handleChange} required />
+          <input name="contactNumber" placeholder="Contact Number" onChange={handleChange} required />
+          <select name="damageType" onChange={handleChange}>
+            <option>Infrastructure</option><option>Housing</option><option>Medical</option><option>Agriculture</option><option>Other</option>
+          </select>
+          <textarea name="damageDescription" placeholder="Describe damage" onChange={handleChange} required />
+          <input name="estimatedLoss" placeholder="Estimated Loss ($)" type="number" onChange={handleChange} />
+          <input name="location.latitude" placeholder="Latitude" type="number" step="any" />
+          <input name="location.longitude" placeholder="Longitude" type="number" step="any" />
+          <input name="location.address" placeholder="Address" />
+          <input type="file" multiple accept="image/*" onChange={handleFileChange} />
+          <button type="submit" className="btn-primary" disabled={loading}>{loading ? "Submitting..." : "Submit Report"}</button>
+        </form>
+      </div>
+    </div>
   );
 };
 

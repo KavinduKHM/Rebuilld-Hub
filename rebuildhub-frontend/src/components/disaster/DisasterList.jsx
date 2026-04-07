@@ -24,12 +24,14 @@ const DisasterList = () => {
   };
 
   if (loading) return <Loader />;
-  if (error) return <p>{error}</p>;
+  if (error) return <p className="empty-state">{error}</p>;
 
   return (
-    <div>
-      <h2>All Disasters</h2>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
+    <div className="detail-stack">
+      <div className="page-card" style={{ gridColumn: "1 / -1" }}>
+        <h2 style={{ marginBottom: 0 }}>All Disasters</h2>
+      </div>
+      <div className="page-grid page-grid--cards">
         {disasters.map(d => <DisasterCard key={d._id} disaster={d} />)}
       </div>
     </div>

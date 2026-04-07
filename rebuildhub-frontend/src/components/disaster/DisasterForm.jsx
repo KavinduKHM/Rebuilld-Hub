@@ -68,29 +68,39 @@ const DisasterForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={styles.form}>
-      <h2>Report New Disaster</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <input name="title" placeholder="Title" onChange={handleChange} required />
-      <select name="type" onChange={handleChange}>
-        <option>Flood</option><option>Earthquake</option><option>Landslide</option><option>Cyclone</option><option>Other</option>
-      </select>
-      <textarea name="description" placeholder="Description" onChange={handleChange} required />
-      <select name="severityLevel" onChange={handleChange}>
-        <option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
-      </select>
-      <LocationMapPicker location={formData.location} onChange={handleLocationChange} />
-      <input name="location.name" placeholder="Location Name" value={formData.location.name} readOnly />
-      <input name="location.latitude" placeholder="Latitude" type="number" step="any" value={formData.location.latitude} readOnly />
-      <input name="location.longitude" placeholder="Longitude" type="number" step="any" value={formData.location.longitude} readOnly />
-      <input type="file" multiple accept="image/*" onChange={handleFileChange} />
-      <button type="submit" disabled={loading}>{loading ? "Creating..." : "Create Disaster"}</button>
-    </form>
+    <div className="page-shell">
+      <div className="container" style={{ maxWidth: "760px" }}>
+        <div className="page-header">
+          <div>
+            <span className="section-label">Response Intake</span>
+            <h1 className="page-title">Report New Disaster</h1>
+            <p className="page-subtitle">
+              Select a location on the map, fill the incident details, and submit the report.
+            </p>
+          </div>
+        </div>
+        <form onSubmit={handleSubmit} className="page-card detail-stack">
+          {error && <p className="empty-state" style={{ color: "#b4232c" }}>{error}</p>}
+          <input name="title" placeholder="Title" onChange={handleChange} required />
+          <select name="type" onChange={handleChange}>
+            <option>Flood</option><option>Earthquake</option><option>Landslide</option><option>Cyclone</option><option>Other</option>
+          </select>
+          <textarea name="description" placeholder="Description" onChange={handleChange} required />
+          <select name="severityLevel" onChange={handleChange}>
+            <option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
+          </select>
+          <LocationMapPicker location={formData.location} onChange={handleLocationChange} />
+          <input name="location.name" placeholder="Location Name" value={formData.location.name} readOnly />
+          <input name="location.latitude" placeholder="Latitude" type="number" step="any" value={formData.location.latitude} readOnly />
+          <input name="location.longitude" placeholder="Longitude" type="number" step="any" value={formData.location.longitude} readOnly />
+          <input type="file" multiple accept="image/*" onChange={handleFileChange} />
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? "Creating..." : "Create Disaster"}
+          </button>
+        </form>
+      </div>
+    </div>
   );
-};
-
-const styles = {
-  form: { display: "flex", flexDirection: "column", maxWidth: "500px", margin: "auto", gap: "1rem" }
 };
 
 export default DisasterForm;
