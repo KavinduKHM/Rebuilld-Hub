@@ -1,0 +1,403 @@
+/* src/pages/volunteer/VolunteerPage.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #fbf8ff;
+  color: #161a33;
+}
+
+.volunteer-page {
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Top Navigation */
+.top-nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 50;
+  background: linear-gradient(135deg, #0a0e27 0%, #0f1322 100%);
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+}
+
+.nav-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.brand-logo {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: white;
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.nav-link {
+  color: #94a3b8;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+  color: #00d2fd;
+  font-weight: 700;
+  border-bottom: 2px solid #00d2fd;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.icon-button {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.profile-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.profile-menu:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.profile-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #00d2fd;
+  overflow: hidden;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-name {
+  color: white;
+  font-weight: 500;
+}
+
+/* Background Blobs */
+.background-blobs {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.blob-1 {
+  position: absolute;
+  top: 80px;
+  left: 40px;
+  width: 320px;
+  height: 320px;
+  background: rgba(0, 210, 253, 0.2);
+  border-radius: 50%;
+  filter: blur(100px);
+}
+
+.blob-2 {
+  position: absolute;
+  bottom: 80px;
+  right: 40px;
+  width: 480px;
+  height: 480px;
+  background: rgba(0, 96, 172, 0.1);
+  border-radius: 50%;
+  filter: blur(120px);
+}
+
+/* Main Content */
+.main-content {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px 60px;
+  min-height: calc(100vh - 80px);
+  display: flex;
+  align-items: center;
+}
+
+.content-container {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* Left Panel */
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-top: 16px;
+}
+
+.mission-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #00677e;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.badge-line {
+  width: 32px;
+  height: 2px;
+  background: #00677e;
+}
+
+.hero-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #161a33;
+}
+
+.hero-title .highlight {
+  color: #00677e;
+}
+
+.hero-description {
+  color: #46464d;
+  font-size: 1.125rem;
+  line-height: 1.625;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.feature-icon {
+  background: #e6e6ff;
+  padding: 12px;
+  border-radius: 12px;
+  color: #00677e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feature-icon span {
+  font-size: 24px;
+}
+
+.feature-item h3 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  color: #161a33;
+  margin-bottom: 4px;
+}
+
+.feature-item p {
+  font-size: 0.875rem;
+  color: #46464d;
+}
+
+/* Right Panel */
+.right-panel {
+  min-width: 0;
+}
+
+.form-disclaimer {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 0.75rem;
+  color: rgba(70, 70, 77, 0.6);
+  font-weight: 500;
+}
+
+/* Footer */
+.footer {
+  position: relative;
+  z-index: 1;
+  padding: 32px 24px;
+  background: #fbf8ff;
+  border-top: 1px solid rgba(199, 197, 206, 0.1);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.footer-left span:first-child {
+  font-size: 1.25rem;
+}
+
+.footer-left span:last-child {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.footer-right {
+  font-size: 0.75rem;
+  color: rgba(70, 70, 77, 0.4);
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-container {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  
+  .left-panel {
+    text-align: center;
+    align-items: center;
+  }
+  
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .features {
+    width: 100%;
+    text-align: left;
+  }
+  
+  .nav-links {
+    display: none;
+  }
+  
+  .main-content {
+    padding: 32px 20px 40px;
+  }
+  
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.75rem;
+  }
+}
+
+/* Add to src/pages/volunteer/VolunteerPage.css */
+
+/* Navigation buttons instead of anchor tags */
+.nav-link-btn {
+  color: #94a3b8;
+  font-weight: 500;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.nav-link-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link-btn.active {
+  color: #00d2fd;
+  font-weight: 700;
+  border-bottom: 2px solid #00d2fd;
+}

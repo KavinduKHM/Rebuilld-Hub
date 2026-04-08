@@ -1,7 +1,7 @@
 const Volunteer = require("../../models/volunteerModel/volunteerModel");
 
 const registerVolunteer = async (data) => {
-  const { name, phone, district, skills } = data;
+  const { name, email, phone, district, skills } = data;
 
   // Check if phone already exists
   const existing = await Volunteer.findOne({ phone });
@@ -9,8 +9,15 @@ const registerVolunteer = async (data) => {
     throw new Error("Phone number already registered");
   }
 
+  // Check if email already exists
+  const existingEmail = await Volunteer.findOne({ email: email.toLowerCase() });
+  if (existingEmail) {
+    throw new Error("Email already registered");
+  }
+
   const volunteer = await Volunteer.create({
     name,
+    email: email.toLowerCase(),
     phone,
     district,
     skills,
