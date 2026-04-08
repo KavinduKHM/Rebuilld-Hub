@@ -9,6 +9,7 @@ import DisasterForm from "../components/disaster/DisasterForm.jsx";
 import DamageReportPage from "../pages/damage/DamageReportPage.jsx";
 import DamageDetailsPage from "../pages/damage/DamageDetailsPage.jsx";
 import AidRequestForm from "../components/aid/AidRequestForm.jsx";
+import WeatherPage from "../pages/weather/WeatherPage.jsx";
 
 const AppRoutes = () => {
   return (
@@ -20,6 +21,7 @@ const AppRoutes = () => {
         <Route path="/disasters" element={<DisasterPage />} />
         <Route path="/disasters/new" element={<DisasterForm />} />
         <Route path="/aid/request" element={<AidRequestForm />} />
+        <Route path="/weather" element={<WeatherPage />} />
         <Route path="/disasters/:id" element={<DisasterDetailsPage />} />
         <Route path="/reports/new" element={<DamageReportPage />} />
         <Route path="/damage/:id" element={<DamageDetailsPage />} />
