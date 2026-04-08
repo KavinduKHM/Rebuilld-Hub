@@ -1,5 +1,7 @@
 const volunteerService = require("../../services/volunteerService/volunteerService");
 
+const isInvalidIdError = (error) => error.message === "Invalid volunteer identifier";
+
 // Register volunteer
 const registerVolunteer = async (req, res) => {
   try {
@@ -9,7 +11,7 @@ const registerVolunteer = async (req, res) => {
       data: volunteer,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(isInvalidIdError(error) ? 400 : 500).json({
       message: error.message || "Server error",
     });
   }
@@ -25,7 +27,7 @@ const getAllVolunteers = async (req, res) => {
       data: volunteers,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(isInvalidIdError(error) ? 400 : 500).json({
       success: false,
       message: error.message,
     });
@@ -47,7 +49,7 @@ const getVolunteerById = async (req, res) => {
       data: volunteer,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(isInvalidIdError(error) ? 400 : 500).json({
       success: false,
       message: error.message,
     });
@@ -73,7 +75,7 @@ const updateVolunteer = async (req, res) => {
       data: volunteer,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(isInvalidIdError(error) ? 400 : 500).json({
       success: false,
       message: error.message,
     });

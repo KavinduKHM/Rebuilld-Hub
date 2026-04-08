@@ -1,7 +1,70 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { getDisasters } from "../services/disasterService";
+import { formatCurrencyLKR } from "../utils/formatters";
+
+// Fix Leaflet marker icons for React
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
+
+const mapCenter = [7.8731, 80.7718];
 
 const Home = () => {
+  const [disasters, setDisasters] = useState([]);
+  const [lastUpdated, setLastUpdated] = useState("Just now");
+
+  useEffect(() => {
+    let timer;
+
+    const loadDisasters = async () => {
+      try {
+        const response = await getDisasters();
+        setDisasters(response.data || []);
+        setLastUpdated(new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }));
+      } catch (error) {
+        // Keep previous data if fetch fails.
+      }
+    };
+
+    loadDisasters();
+    timer = setInterval(loadDisasters, 20000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
+  const activeDisasters = useMemo(
+    () => disasters.filter((item) => item.status === "Active"),
+    [disasters]
+  );
+
+  const pendingDisasters = useMemo(
+    () => disasters.filter((item) => (item.verificationStatus || "Pending") === "Pending"),
+    [disasters]
+  );
+
+  const totalDisasters = disasters.length;
+  const activeAidRequests = pendingDisasters.length;
+  const registeredVolunteers = 120000;
+  const resourceBudget = 2400000000;
+
+  const mapMarkers = activeDisasters
+    .map((item) => {
+      const lat = Number(item.location?.latitude);
+      const lng = Number(item.location?.longitude);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+      return { id: item._id, lat, lng, title: item.title, type: item.type };
+    })
+    .filter(Boolean);
+
   return (
     <main className="theme-shell">
       <section className="hero-section" id="dashboard">
@@ -27,21 +90,21 @@ const Home = () => {
           <div className="ops-card ops-card--wide">
             <div className="ops-header">
               <div className="ops-title">Live Operations</div>
-              <span className="ops-updated">Updated: Just Now</span>
+              <span className="ops-updated">Updated: {lastUpdated}</span>
             </div>
             <div className="ops-metrics">
               <div>
                 <p>Active Requests</p>
-                <strong>1,284</strong>
+                <strong>{activeAidRequests}</strong>
               </div>
               <div>
                 <p>Efficiency Rate</p>
-                <strong>94.2%</strong>
+                <strong>{totalDisasters ? Math.min(100, Math.round((activeDisasters.length / totalDisasters) * 100)) : 0}%</strong>
               </div>
             </div>
             <div className="ops-tags">
-              <span className="ops-tag ops-tag--warning">Tsunami Warning - SE Asia</span>
-              <span className="ops-tag ops-tag--success">Medical Supplies Dispatched</span>
+              <span className="ops-tag ops-tag--warning">Active incidents: {activeDisasters.length}</span>
+              <span className="ops-tag ops-tag--success">Pending verification: {pendingDisasters.length}</span>
             </div>
             <div className="ops-actions">
               <Link to="/disasters" className="btn-secondary">View Disasters</Link>
@@ -78,10 +141,10 @@ const Home = () => {
 
       <section className="stats-band" id="volunteer">
         <div className="container stats-grid">
-          <div><span>Total Disasters</span><strong>412</strong><small>Actively Monitored</small></div>
-          <div><span>Active Aid Requests</span><strong>8.5k</strong><small>Processing 24/7</small></div>
-          <div><span>Registered Volunteers</span><strong>120k</strong><small>Global Network</small></div>
-          <div><span>Resources Available</span><strong>$2.4B</strong><small>Allocated Relief</small></div>
+          <div><span>Total Disasters</span><strong>{totalDisasters}</strong><small>Actively Monitored</small></div>
+          <div><span>Active Aid Requests</span><strong>{activeAidRequests}</strong><small>Processing 24/7</small></div>
+          <div><span>Registered Volunteers</span><strong>{Math.round(registeredVolunteers / 1000)}k</strong><small>Global Network</small></div>
+          <div><span>Resources Available</span><strong>{formatCurrencyLKR(resourceBudget)}</strong><small>Allocated Relief</small></div>
         </div>
       </section>
 
@@ -99,11 +162,25 @@ const Home = () => {
             </ul>
           </div>
           <div className="world-map-panel">
-            <iframe
-              title="Sri Lanka map"
+            <MapContainer
+              center={mapCenter}
+              zoom={7}
+              scrollWheelZoom={false}
               className="world-map-embed"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=79.5215%2C5.9168%2C81.8790%2C9.9417&amp;layer=mapnik"
-            />
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {mapMarkers.map((marker) => (
+                <Marker key={marker.id} position={[marker.lat, marker.lng]}>
+                  <Popup>
+                    <strong>{marker.title || "Active Disaster"}</strong>
+                    <div>{marker.type || "Other"}</div>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
           </div>
         </div>
       </section>

@@ -1,0 +1,409 @@
+/* src/pages/volunteer/AdminVolunteerManagement.css */
+.admin-volunteer-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Stats Header */
+.stats-header {
+  margin-bottom: 32px;
+}
+
+.stats-header h1 {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #161a33;
+  margin-bottom: 8px;
+}
+
+.stats-header > p {
+  color: #46464d;
+  margin-bottom: 24px;
+}
+
+.stats-cards {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background: white;
+  padding: 16px 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(199, 197, 206, 0.1);
+  min-width: 120px;
+}
+
+.stat-card p:first-child {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.pending-stat p:first-child { color: #f39c12; }
+.approved-stat p:first-child { color: #2ecc71; }
+.rejected-stat p:first-child { color: #e74c3c; }
+.total-stat p:first-child { color: #00677e; }
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #161a33;
+}
+
+/* Filters Bar */
+.filters-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(199, 197, 206, 0.1);
+}
+
+.filter-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f4f2ff;
+  padding: 8px 16px;
+  border-radius: 12px;
+}
+
+.filter-select .material-symbols-outlined {
+  font-size: 18px;
+  color: #00677e;
+}
+
+.filter-select select {
+  background: transparent;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #161a33;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.filter-select select:focus {
+  outline: none;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f4f2ff;
+  padding: 8px 16px;
+  border-radius: 12px;
+  flex: 1;
+  max-width: 320px;
+}
+
+.search-box .material-symbols-outlined {
+  font-size: 18px;
+  color: #8b92b2;
+}
+
+.search-box input {
+  background: transparent;
+  border: none;
+  font-size: 0.875rem;
+  width: 100%;
+}
+
+.search-box input:focus {
+  outline: none;
+}
+
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: #00677e;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+  background: #005566;
+}
+
+/* Table */
+.table-container {
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(199, 197, 206, 0.1);
+  flex: 1;
+}
+
+.volunteers-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.volunteers-table thead tr {
+  background: #f8f7fc;
+}
+
+.volunteers-table th {
+  text-align: left;
+  padding: 16px 24px;
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #00677e;
+  letter-spacing: 0.08em;
+}
+
+.volunteers-table td {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(199, 197, 206, 0.1);
+}
+
+.table-row:hover {
+  background: rgba(244, 242, 255, 0.3);
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* Applicant Info */
+.applicant-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #00677e, #00d2fd);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.applicant-name {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #161a33;
+  margin-bottom: 2px;
+}
+
+.applicant-email {
+  font-size: 0.75rem;
+  color: #46464d;
+}
+
+/* Location */
+.location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: #161a33;
+}
+
+.location .material-symbols-outlined {
+  font-size: 16px;
+  color: #00d2fd;
+}
+
+/* Skills */
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-badge {
+  padding: 4px 10px;
+  background: #f4f2ff;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #00677e;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.status-badge.pending {
+  background: rgba(243, 156, 18, 0.15);
+  color: #f39c12;
+}
+
+.status-badge.approved {
+  background: rgba(46, 204, 113, 0.15);
+  color: #27ae60;
+}
+
+.status-badge.rejected {
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.action-buttons button {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.action-buttons button .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.btn-approve {
+  background: rgba(46, 204, 113, 0.1);
+  color: #27ae60;
+}
+
+.btn-approve:hover {
+  background: #27ae60;
+  color: white;
+}
+
+.btn-reject {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+}
+
+.btn-reject:hover {
+  background: #e74c3c;
+  color: white;
+}
+
+.btn-delete {
+  background: rgba(149, 165, 166, 0.1);
+  color: #7f8c8d;
+}
+
+.btn-delete:hover {
+  background: #7f8c8d;
+  color: white;
+}
+
+/* No Results */
+.no-results {
+  text-align: center;
+  padding: 60px;
+  color: #46464d;
+  font-size: 0.875rem;
+}
+
+/* Footer */
+.admin-footer {
+  margin-top: 32px;
+  padding: 20px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-top: 1px solid rgba(199, 197, 206, 0.1);
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #8b92b2;
+}
+
+.footer-left .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.footer-right {
+  font-size: 0.7rem;
+  color: #8b92b2;
+}
+
+/* Loading */
+.admin-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-size: 1rem;
+  color: #00677e;
+  background: #fbf8ff;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-box {
+    max-width: none;
+  }
+  
+  .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .volunteers-table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .admin-footer {
+    flex-direction: column;
+    text-align: center;
+  }
+}

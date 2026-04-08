@@ -125,22 +125,83 @@ const getEventById = async (req, res) => {
 // Volunteer expresses interest in an event
 const expressInterest = async (req, res) => {
   try {
-    // Check if volunteer exists and is verified
+    const requestedVolunteerId =
+      req.body?.volunteerId || req.user?.id || req.user?.volunteerId;
+
+    if (!requestedVolunteerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Volunteer identity is required",
+      });
+    }
+
     const volunteer = await Volunteer.findOne({
-      user: req.user?.id,
-      verificationStatus: "VERIFIED",
-      availability: "AVAILABLE",
+      $or: [
+        { _id: requestedVolunteerId },
+        { volunteerId: Number(requestedVolunteerId) },
+      ],
     });
 
     if (!volunteer) {
+      return res.status(403).json({
+        success: false,
+        message: "Volunteer not found",
+      });
+    }
+
+    const verificationStatus = String(
+      volunteer.verificationStatus || volunteer.status || "",
+    ).toUpperCase();
+    const availability = String(volunteer.availability || "").toUpperCase();
+
+    if (verificationStatus !== "VERIFIED" || availability !== "AVAILABLE") {
       return res.status(403).json({
         success: false,
         message: "Only verified and available volunteers can express interest",
       });
     }
 
+    const liveEventData = req.body?.eventData;
+    let event = await Event.findById(req.params.id);
+
+    if (!event) {
+      event = await Event.findOne({ nasaEventId: req.params.id });
+    }
+
+    if (!event && liveEventData?.id) {
+      event = await Event.create({
+        nasaEventId: String(liveEventData.id),
+        title: liveEventData.title || "Untitled Event",
+        description: liveEventData.description || "",
+        category: liveEventData.category || "Disaster",
+        categoryId:
+          liveEventData.categoryId ||
+          String(liveEventData.category || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, ""),
+        location: liveEventData.location || { type: "Point", coordinates: [0, 0] },
+        countries: liveEventData.countries || [],
+        districts: liveEventData.districts || [],
+        magnitude: liveEventData.magnitude || 0,
+        magnitudeUnit: liveEventData.magnitudeUnit || "",
+        status: liveEventData.status || "ACTIVE",
+        dateStarted: liveEventData.dateStarted || new Date(),
+        dateEnded: liveEventData.dateEnded,
+        sources: liveEventData.sources || [],
+        geometry: liveEventData.geometry || [],
+        requiredSkills: liveEventData.requiredSkills || [],
+      });
+    }
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found",
+      });
+    }
+
     const result = await eventService.expressInterest(
-      req.params.id,
+      event._id,
       volunteer._id,
     );
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -7,6 +7,7 @@ import { getDisasterById } from "../../services/disasterService";
 import { getReportsByDisaster, verifyReport } from "../../services/damageService";
 import { verifyDisaster } from "../../services/disasterService";
 import Loader from "../common/Loader";
+import { formatCurrencyLKR } from "../../utils/formatters";
 
 // Fix Leaflet marker icons for React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -15,6 +16,30 @@ L.Icon.Default.mergeOptions({
   iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
+
+const formatDate = (value) => {
+  if (!value) return "N/A";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "N/A";
+  return parsed.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+};
+
+const formatCurrency = (value) => formatCurrencyLKR(value);
+
+const normalizeText = (value) => (value ?? "").toString().trim();
+
+const getVerificationClass = (status) => {
+  if (status === "Verified" || status === "Approved") return "status-chip--verified";
+  if (status === "Rejected") return "status-chip--rejected";
+  return "status-chip--pending";
+};
+
+const getSeverityClass = (severity) => {
+  if (severity === "Critical") return "incident-badge--critical";
+  if (severity === "High") return "incident-badge--high";
+  if (severity === "Medium") return "incident-badge--medium";
+  return "incident-badge--low";
+};
 
 const DisasterDetails = () => {
   const { id } = useParams();
@@ -66,96 +91,189 @@ const DisasterDetails = () => {
   if (loading) return <Loader />;
   if (error) return <p className="empty-state">{error}</p>;
 
+  const verificationStatus = disaster.verificationStatus || "Pending";
+  const locationLabel = normalizeText(disaster.location?.name) || "Location pending";
+  const reporterCount = reports.filter((report) => normalizeText(report.reporterName)).length;
+
+  const operationalLogs = [
+    {
+      title: "Disaster record opened",
+      detail: `${formatDate(disaster.createdAt)} • ${locationLabel}`,
+      time: "T-0",
+      tone: "neutral",
+    },
+    ...reports.slice(0, 4).map((report, index) => ({
+      title: normalizeText(report.reporterName) || `Field report ${index + 1}`,
+      detail: normalizeText(report.damageDescription) || "Damage report submitted.",
+      time: formatDate(report.updatedAt || report.createdAt),
+      tone: report.verificationStatus === "Rejected" ? "risk" : (report.verificationStatus === "Verified" || report.verificationStatus === "Approved") ? "safe" : "neutral",
+    })),
+  ];
+
   return (
-    <div className="page-shell">
-      <div className="container detail-stack">
-        <div className="page-header">
+    <div className="page-shell disaster-detail-shell">
+      <div className="container container--wide detail-stack">
+        <header className="page-card detail-command-strip">
           <div>
-            <span className="section-label">Disaster Detail</span>
-            <h1 className="page-title">{disaster.title}</h1>
-            <p className="page-subtitle">
-              {disaster.location?.name} {disaster.location?.latitude && disaster.location?.longitude ? `(${disaster.location.latitude}, ${disaster.location.longitude})` : ""}
-            </p>
+            <span className="section-label">Incident Command</span>
+            <p className="page-subtitle">Last synchronized: {formatDate(disaster.updatedAt || disaster.createdAt)}</p>
           </div>
-        </div>
+          <div className="detail-command-actions">
+            <button type="button" className="btn-secondary">Request Intel</button>
+            {role === "admin" && verificationStatus === "Pending" ? (
+              <>
+                <button type="button" className="btn-danger" onClick={() => handleVerifyDisaster("Rejected")}>Reject</button>
+                <button type="button" className="btn-primary" onClick={() => handleVerifyDisaster("Verified")}>Verify Disaster</button>
+              </>
+            ) : (
+              <span className={`status-chip ${getVerificationClass(verificationStatus)}`}>{verificationStatus}</span>
+            )}
+          </div>
+        </header>
 
-        <div className="page-card detail-stack">
-          <p><strong>Type:</strong> {disaster.type}</p>
-          <p><strong>Severity:</strong> {disaster.severityLevel}</p>
-          <p>
-            <strong>Verification Status:</strong>{" "}
-            <span
-              className={`status-chip ${
-                (disaster.verificationStatus || "Pending") === "Verified"
-                  ? "status-chip--verified"
-                  : (disaster.verificationStatus || "Pending") === "Rejected"
-                    ? "status-chip--rejected"
-                    : "status-chip--pending"
-              }`}
-            >
-              {disaster.verificationStatus || "Pending"}
-            </span>
-          </p>
-          <p><strong>Description:</strong> {disaster.description}</p>
-          {role === "admin" && (disaster.verificationStatus || "Pending") === "Pending" && (
-            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-              <button onClick={() => handleVerifyDisaster("Verified")} className="btn-primary">Verify Disaster</button>
-              <button onClick={() => handleVerifyDisaster("Rejected")} className="btn-danger">Reject Disaster</button>
-            </div>
-          )}
-          {disaster.images?.length > 0 && (
-            <div>
-              <h4>Evidence Images:</h4>
-              <div className="media-grid">
-                {disaster.images.map((img, i) => <img key={i} src={img} alt="disaster" style={{ width: "200px", height: "140px" }} />)}
+        <section className="detail-layout-grid">
+          <div className="detail-main-column">
+            <article className="page-card incident-card">
+              <div className="incident-card__head">
+                <span className={`incident-badge ${getSeverityClass(disaster.severityLevel)}`}>
+                  Severity: {disaster.severityLevel || "Unknown"}
+                </span>
+                <span className="incident-badge incident-badge--status">Status: {verificationStatus}</span>
               </div>
-            </div>
-          )}
-        </div>
 
-        <div className="page-card detail-stack">
-          <h3 style={{ marginBottom: 0 }}>Auto-Generated Damage Report</h3>
-          {reports.length === 0 && <p>No report generated yet.</p>}
-          {reports.map(report => (
-            <div key={report._id} className="page-card" style={{ marginTop: 0 }}>
-              <p><strong>Reporter:</strong> {report.reporterName}</p>
-              <p><strong>Damage Type:</strong> {report.damageType}</p>
-              <p><strong>Description:</strong> {report.damageDescription}</p>
-              <p><strong>Estimated Loss:</strong> ${report.estimatedLoss}</p>
-              <p><strong>Status:</strong> <span className={`status-chip ${report.verificationStatus === "Verified" ? "status-chip--verified" : report.verificationStatus === "Rejected" ? "status-chip--rejected" : "status-chip--pending"}`}>{report.verificationStatus}</span></p>
-              {report.googleMap && (
-                <div>
-                  <a href={report.googleMap.viewLocation} target="_blank" rel="noopener noreferrer" className="btn-secondary">View on Google Maps</a>
+              <h2>{disaster.title}</h2>
+
+              <div className="incident-meta-row">
+                <span>{disaster.type || "Unknown"}</span>
+                <span>{formatDate(disaster.createdAt)}</span>
+                <span>{locationLabel}</span>
+              </div>
+
+              <p className="incident-description">{disaster.description}</p>
+            </article>
+
+            <article className="page-card evidence-panel">
+              <div className="evidence-panel__header">
+                <h3>Visual Evidence Assets</h3>
+                <span>{disaster.images?.length || 0} files detected</span>
+              </div>
+
+              {disaster.images?.length > 0 ? (
+                <div className="evidence-grid">
+                  {disaster.images.map((img, index) => (
+                    <img key={`${img}-${index}`} src={img} alt="disaster evidence" />
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-state">No visual evidence has been uploaded.</p>
+              )}
+            </article>
+
+            <article className="page-card operation-log-panel">
+              <h3>Operation Log</h3>
+              <div className="operation-log-list">
+                {operationalLogs.map((entry, index) => (
+                  <div key={`${entry.title}-${index}`} className="operation-log-item">
+                    <span className={`operation-log-dot operation-log-dot--${entry.tone}`} />
+                    <div>
+                      <strong>{entry.title}</strong>
+                      <p>{entry.detail}</p>
+                    </div>
+                    <small>{entry.time}</small>
+                  </div>
+                ))}
+              </div>
+            </article>
+          </div>
+
+          <aside className="detail-side-column">
+            <article className="page-card detail-map-panel">
+              <h3>Live Location</h3>
+              {disaster.location?.latitude && disaster.location?.longitude ? (
+                <MapContainer
+                  center={[Number(disaster.location.latitude), Number(disaster.location.longitude)]}
+                  zoom={12}
+                  style={{ height: "250px" }}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <Marker position={[Number(disaster.location.latitude), Number(disaster.location.longitude)]}>
+                    <Popup>{locationLabel}</Popup>
+                  </Marker>
+                </MapContainer>
+              ) : (
+                <p className="empty-state">Coordinates are not available.</p>
+              )}
+            </article>
+
+            <article className="page-card assessments-panel">
+              <h3>Validated Assessments</h3>
+
+              {reports.length === 0 ? (
+                <p className="empty-state">No reports generated yet.</p>
+              ) : (
+                <div className="assessment-list">
+                  {reports.map((report) => (
+                    <div key={report._id} className="assessment-card">
+                      <div className="assessment-card__header">
+                        <strong>{normalizeText(report.reporterName) || "Unknown reporter"}</strong>
+                        <span className={`status-chip ${getVerificationClass(report.verificationStatus)}`}>
+                          {report.verificationStatus || "Pending"}
+                        </span>
+                      </div>
+
+                      <p className="assessment-card__type">{report.damageType || "Damage Report"}</p>
+                      <p className="assessment-card__description">{report.damageDescription}</p>
+
+                      <div className="assessment-card__footer">
+                        <span>Estimated loss</span>
+                        <strong>{formatCurrency(report.estimatedLoss)}</strong>
+                      </div>
+
+                      <div className="assessment-card__actions">
+                        <Link to={`/damage/${report._id}`} className="btn-secondary">
+                          View Full Report
+                        </Link>
+                        {report.googleMap?.viewLocation && (
+                          <a href={report.googleMap.viewLocation} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+                            Open Map
+                          </a>
+                        )}
+                        {role === "admin" && report.verificationStatus === "Pending" && (
+                          <>
+                            <button type="button" className="btn-primary" onClick={() => handleVerify(report._id, "Approved")}>Approve</button>
+                            <button type="button" className="btn-danger" onClick={() => handleVerify(report._id, "Rejected")}>Reject</button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
-              {role === "admin" && report.verificationStatus === "Pending" && (
-                <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                  <button onClick={() => handleVerify(report._id, "Verified")} className="btn-primary">Verify</button>
-                  <button onClick={() => handleVerify(report._id, "Rejected")} className="btn-danger">Reject</button>
-                </div>
-              )}
-            </div>
-          ))}
+            </article>
+          </aside>
+        </section>
 
-          {disaster.location?.latitude && disaster.location?.longitude && (
-            <div className="map-panel">
-              <h4>Location Map:</h4>
-              <MapContainer
-                center={[Number(disaster.location.latitude), Number(disaster.location.longitude)]}
-                zoom={13}
-                style={{ height: "320px" }}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <Marker position={[Number(disaster.location.latitude), Number(disaster.location.longitude)]}>
-                  <Popup>{disaster.location.name}</Popup>
-                </Marker>
-              </MapContainer>
-            </div>
-          )}
-        </div>
+        <section className="detail-bottom-metrics page-card">
+          <div>
+            <span>Disaster Type</span>
+            <strong>{disaster.type || "Unknown"}</strong>
+          </div>
+          <div>
+            <span>Severity</span>
+            <strong>{disaster.severityLevel || "Unknown"}</strong>
+          </div>
+          <div>
+            <span>Reports</span>
+            <strong>{reports.length}</strong>
+          </div>
+          <div>
+            <span>Contributors</span>
+            <strong>{reporterCount}</strong>
+          </div>
+        </section>
       </div>
     </div>
   );

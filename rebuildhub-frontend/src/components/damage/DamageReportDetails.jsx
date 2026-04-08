@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getReportById, verifyReport } from "../../services/damageService";
 import Loader from "../common/Loader";
+import { formatCurrencyLKR } from "../../utils/formatters";
 
 const DamageReportDetails = () => {
   const { id } = useParams();
@@ -40,61 +41,94 @@ const DamageReportDetails = () => {
   if (!report) return <p>Report not found</p>;
 
   return (
-    <div className="page-shell">
+    <div className="page-shell damage-detail-shell">
       <div className="container detail-stack">
-        <div className="page-header">
+        <header className="page-card damage-detail-header">
           <div>
             <span className="section-label">Damage Detail</span>
             <h1 className="page-title">Damage Report Details</h1>
+            <p className="page-subtitle">Full field submission with verification context and evidence assets.</p>
           </div>
-        </div>
-        <div className="page-card detail-stack">
-          <p><strong>Disaster ID:</strong> {report.disasterId?._id || report.disasterId}</p>
-          <p><strong>Reporter Name:</strong> {report.reporterName}</p>
-          <p><strong>Contact Number:</strong> {report.contactNumber}</p>
-          <p><strong>Damage Type:</strong> {report.damageType}</p>
-          <p><strong>Description:</strong> {report.damageDescription}</p>
-          <p><strong>Estimated Loss:</strong> ${report.estimatedLoss?.toLocaleString()}</p>
-          <p><strong>Verification Status:</strong> 
-            <span className={`status-chip ${report.verificationStatus === "Verified" ? "status-chip--verified" : report.verificationStatus === "Rejected" ? "status-chip--rejected" : "status-chip--pending"}`}>
+          <div className="damage-detail-meta">
+            <span className={`status-chip ${(report.verificationStatus === "Verified" || report.verificationStatus === "Approved") ? "status-chip--verified" : report.verificationStatus === "Rejected" ? "status-chip--rejected" : "status-chip--pending"}`}>
               {report.verificationStatus}
             </span>
-          </p>
-        
-          {report.location && (report.location.latitude || report.location.longitude) && (
             <div>
-              <strong>Location:</strong><br />
-              Lat: {report.location.latitude}, Lng: {report.location.longitude}<br />
-              Address: {report.location.address || "N/A"}
+              <small>Estimated Loss</small>
+              <strong>{formatCurrencyLKR(report.estimatedLoss)}</strong>
             </div>
-          )}
+          </div>
+        </header>
 
-          {report.googleMap?.viewLocation && (
-            <div>
-              <a href={report.googleMap.viewLocation} target="_blank" rel="noopener noreferrer" className="btn-secondary">
-                Open in Google Maps
-              </a>
-            </div>
-          )}
-
-          {report.images && report.images.length > 0 && (
-            <div>
-              <strong>Evidence Images:</strong>
-              <div className="media-grid" style={{ marginTop: "0.75rem" }}>
-                {report.images.map((img, idx) => (
-                  <img key={idx} src={img} alt="evidence" style={{ width: "150px", height: "120px" }} />
-                ))}
+        <section className="damage-detail-grid">
+          <div className="damage-detail-main">
+            <div className="page-card damage-detail-summary">
+              <div>
+                <span className="section-label">Report Summary</span>
+                <h2>{report.damageType || "Damage Report"}</h2>
+                <p className="damage-detail-description">{report.damageDescription}</p>
+              </div>
+              <div className="damage-detail-badges">
+                <div>
+                  <span>Reporter</span>
+                  <strong>{report.reporterName || "Unknown"}</strong>
+                </div>
+                <div>
+                  <span>Contact</span>
+                  <strong>{report.contactNumber || "N/A"}</strong>
+                </div>
+                <div>
+                  <span>Disaster ID</span>
+                  <strong>{report.disasterId?._id || report.disasterId}</strong>
+                </div>
               </div>
             </div>
-          )}
 
-          {role === "admin" && report.verificationStatus === "Pending" && (
-            <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-              <button onClick={() => handleVerify("Verified")} className="btn-primary">Verify Report</button>
-              <button onClick={() => handleVerify("Rejected")} className="btn-danger">Reject Report</button>
+            {report.images && report.images.length > 0 && (
+              <div className="page-card damage-detail-evidence">
+                <div className="damage-detail-section-head">
+                  <span className="section-label">Evidence Images</span>
+                  <strong>{report.images.length} Files</strong>
+                </div>
+                <div className="damage-detail-evidence-grid">
+                  {report.images.map((img, idx) => (
+                    <img key={idx} src={img} alt="evidence" />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <aside className="damage-detail-side">
+            <div className="page-card damage-detail-location">
+              <div className="damage-detail-section-head">
+                <span className="section-label">Location</span>
+              </div>
+              {report.location && (report.location.latitude || report.location.longitude) ? (
+                <div className="damage-detail-location-info">
+                  <p><strong>Lat:</strong> {report.location.latitude}</p>
+                  <p><strong>Lng:</strong> {report.location.longitude}</p>
+                  <p><strong>Address:</strong> {report.location.address || "N/A"}</p>
+                </div>
+              ) : (
+                <p className="empty-state">Location not recorded.</p>
+              )}
+              {report.googleMap?.viewLocation && (
+                <a href={report.googleMap.viewLocation} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+                  Open in Google Maps
+                </a>
+              )}
             </div>
-          )}
-        </div>
+
+            {role === "admin" && report.verificationStatus === "Pending" && (
+              <div className="page-card damage-detail-actions">
+                <span className="section-label">Admin Actions</span>
+                <button onClick={() => handleVerify("Approved")} className="btn-primary">Approve Report</button>
+                <button onClick={() => handleVerify("Rejected")} className="btn-danger">Reject Report</button>
+              </div>
+            )}
+          </aside>
+        </section>
       </div>
     </div>
   );

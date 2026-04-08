@@ -1,0 +1,287 @@
+/* src/components/volunteer/VolunteerForm.css */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 32px;
+  padding: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 32px 64px -12px rgba(22, 26, 51, 0.08);
+}
+
+.volunteer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-accent {
+  width: 6px;
+  height: 24px;
+  background: #00d2fd;
+  border-radius: 3px;
+}
+
+.section-title h2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #161a33;
+  margin: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.input-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-field label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #46464d;
+  padding-left: 4px;
+}
+
+.input-field input,
+.input-field select {
+  width: 100%;
+  background: #f4f2ff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9375rem;
+  color: #161a33;
+  transition: all 0.2s;
+}
+
+.input-field input:focus,
+.input-field select:focus {
+  outline: none;
+  background: #e6e6ff;
+  box-shadow: 0 0 0 2px rgba(0, 210, 253, 0.3);
+}
+
+.input-field input::placeholder {
+  color: #c7c5ce;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.skill-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f4f2ff;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.skill-option:hover {
+  background: #e6e6ff;
+  transform: translateY(-1px);
+}
+
+.skill-option input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #00d2fd;
+}
+
+.skill-option span {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #161a33;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid rgba(199, 197, 206, 0.2);
+}
+
+.deployment-toggle {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #dee0ff;
+  transition: 0.3s;
+  border-radius: 34px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.toggle input:checked + .toggle-slider {
+  background: linear-gradient(135deg, #00677e, #00d2fd);
+}
+
+.toggle input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toggle-title {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #161a33;
+}
+
+.toggle-subtitle {
+  font-size: 0.75rem;
+  color: #46464d;
+}
+
+.submit-btn {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #00677e, #00d2fd);
+  border: none;
+  border-radius: 16px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 103, 126, 0.25);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit-btn span {
+  font-size: 1.125rem;
+  transition: transform 0.2s;
+}
+
+.submit-btn:hover:not(:disabled) span {
+  transform: translateX(4px);
+}
+
+.status-message {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.status-message.success {
+  background: rgba(46, 204, 113, 0.1);
+  color: #27ae60;
+}
+
+.status-message.error {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+}
+
+@media (max-width: 768px) {
+  .glass-card {
+    padding: 24px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .skills-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .submit-btn {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .skills-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .deployment-toggle {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
