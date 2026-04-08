@@ -2,6 +2,18 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Loader from "../common/Loader";
 import { clearAuthSession } from "../../services/authSession";
+import { PiFirstAidFill } from "react-icons/pi";
+import { GiFirstAidKit } from "react-icons/gi";
+
+import {
+	MdCloudQueue,
+	MdLocalShipping,
+	MdOutlineChecklist,
+	MdOutlineLocationOn,
+	MdOutlineRefresh,
+	MdPending,
+} from "react-icons/md";
+import { FaFirstAid, FaHandsHelping, FaHome, FaTint, FaTshirt, FaUtensils } from "react-icons/fa";
 import {
 	getAllAids,
 	updateAidAdminDecision,
@@ -10,6 +22,38 @@ import {
 
 const asText = (value) => (value ?? "").toString().trim();
 const distributionOptions = ["PENDING", "IN_PROGRESS", "COMPLETED"];
+
+const getAidIcon = (aidType) => {
+	const normalized = asText(aidType).toUpperCase();
+	if (normalized === "FOOD") return <FaUtensils />;
+	if (normalized === "WATER") return <FaTint />;
+	if (normalized === "MEDICINE") return <FaFirstAid />;
+	if (normalized === "SHELTER") return <FaHome />;
+	if (normalized === "CLOTHING") return <FaTshirt />;
+	return <FaHandsHelping />;
+};
+
+const getAdminTone = (adminStatus) => {
+	const normalized = asText(adminStatus).toUpperCase();
+	if (normalized === "APPROVED") {
+		return { background: "#e5f7eb", color: "#18794e" };
+	}
+	if (normalized === "REJECTED") {
+		return { background: "#fde8ea", color: "#c0343a" };
+	}
+	return { background: "#fff3d6", color: "#9b6b00" };
+};
+
+const getDistributionTone = (distributionStatus) => {
+	const normalized = asText(distributionStatus).toUpperCase();
+	if (normalized === "COMPLETED") {
+		return { color: "#18794e", bullet: "#26a36f", label: "COMPLETED" };
+	}
+	if (normalized === "IN_PROGRESS") {
+		return { color: "#0f56cc", bullet: "#2563eb", label: "DISPATCHING" };
+	}
+	return { color: "#b4232d", bullet: "#c0343a", label: "PENDING" };
+};
 
 const isCompletedRequest = (aid) =>
 	aid?.distributionStatus === "COMPLETED" && aid?.adminStatus === "APPROVED";
@@ -76,6 +120,7 @@ const AidApproval = () => {
 
 	const activeAids = aids.filter((aid) => !isCompletedRequest(aid));
 	const completedCount = aids.length - activeAids.length;
+	const pendingCount = activeAids.filter((item) => item.adminStatus === "PENDING").length;
 
 	return (
 		<div className="admin-shell">
@@ -103,18 +148,47 @@ const AidApproval = () => {
 			</aside>
 
 			<main className="admin-main">
-				<header className="admin-topbar page-card">
-					<div>
-						<span className="section-label">Aid Operations</span>
-						<h1 className="page-title">Aid Requests</h1>
-						<p className="page-subtitle">
+				<header
+					className="admin-topbar page-card"
+					style={{
+						background: "linear-gradient(180deg, rgba(248, 251, 255, 0.96), rgba(239, 245, 255, 0.92))",
+						border: "1px solid rgba(191, 219, 254, 0.72)",
+						padding: "1.45rem 1.35rem",
+					}}
+				>
+					<div style={{ maxWidth: "620px" }}>
+						<h1 className="page-title" style={{ marginBottom: "0.25rem", fontSize: "clamp(2.2rem, 3.2vw, 3.35rem)", lineHeight: 1.02 }}><GiFirstAidKit />  Aid Requests</h1>
+						<p className="page-subtitle" style={{ maxWidth: "560px", color: "#415a88", lineHeight: 1.45 }}>
 							Requests submitted by users from the Aid Request form.
+							 Triage and coordinate rapid response protocols.
 						</p>
 					</div>
-					<div className="admin-topbar__meta">
-						<span>Active requests: {activeAids.length}</span>
-						<span>Completed requests: {completedCount}</span>
-						<span>Pending decision: {activeAids.filter((item) => item.adminStatus === "PENDING").length}</span>
+					<div
+						className="admin-topbar__meta"
+						style={{
+							minWidth: "304px",
+							padding: "0.45rem 0.25rem",
+							borderRadius: "14px",
+							background: "rgba(255,255,255,0.86)",
+							border: "1px solid rgba(191, 219, 254, 0.8)",
+							display: "grid",
+							gridTemplateColumns: "1fr 1fr 1fr",
+							gap: 0,
+							overflow: "hidden",
+						}}
+					>
+						<div style={{ textAlign: "center", padding: "0.45rem 0.2rem", borderRight: "1px solid rgba(191, 219, 254, 0.72)" }}>
+							<p style={{ margin: 0, fontSize: "0.62rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#2b63c9" }}>Active</p>
+							<strong style={{ fontSize: "2rem", lineHeight: 1.05, color: "#142d59" }}>{activeAids.length}</strong>
+						</div>
+						<div style={{ textAlign: "center", padding: "0.45rem 0.2rem", borderRight: "1px solid rgba(191, 219, 254, 0.72)" }}>
+							<p style={{ margin: 0, fontSize: "0.62rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#7b8eb8" }}>Completed</p>
+							<strong style={{ fontSize: "2rem", lineHeight: 1.05, color: "#142d59" }}>{completedCount}</strong>
+						</div>
+						<div style={{ textAlign: "center", padding: "0.45rem 0.2rem" }}>
+							<p style={{ margin: 0, fontSize: "0.62rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#d04146" }}>Pending</p>
+							<strong style={{ fontSize: "2rem", lineHeight: 1.05, color: "#142d59" }}>{pendingCount}</strong>
+						</div>
 					</div>
 				</header>
 
@@ -123,13 +197,27 @@ const AidApproval = () => {
 						<div className="admin-panel__header">
 							<div>
 								<span className="section-label">Submitted Requests</span>
-								<h2>Active Request Queue</h2>
+								<h2>Active Request Queue <span style={{ marginLeft: "0.4rem", fontSize: "0.62rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#3764bf", background: "#dbe8ff", padding: "0.18rem 0.45rem", borderRadius: "6px" }}>Priority Triage</span></h2>
 							</div>
 							<div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
-								<Link to="/weather" className="btn-secondary">Weather Page</Link>
-								<Link to="/admin/aid-completed" className="btn-secondary">View Completed</Link>
+								<Link
+									to="/weather"
+									className="btn-secondary"
+									style={{
+										display: "inline-flex",
+										alignItems: "center",
+										gap: "0.35rem",
+										background: "linear-gradient(135deg, #028A0F , #3CB043   )",
+										color: "#ffffff",
+										border: "0px solid rgb(53, 94, 59)",
+										boxShadow: "0 0px 3px rgb(53, 94, 59)",
+									}}
+								>
+									<MdCloudQueue /> Weather
+								</Link>
+								<Link to="/admin/aid-completed" className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", color: "#1b56cb"}}><MdOutlineChecklist /> View Completed</Link>
 								<button type="button" className="btn-secondary" onClick={fetchAids}>
-									Refresh
+									<span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}><MdOutlineRefresh /> Refresh</span>
 								</button>
 							</div>
 						</div>
@@ -143,28 +231,57 @@ const AidApproval = () => {
 								No active aid requests. All completed requests are available in the completed page.
 							</p>
 						) : (
-							<div className="admin-verification-list">
+							<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "1rem" }}>
 								{activeAids.map((aid) => (
-									<article key={aid._id} className="admin-verification-card">
+									<article key={aid._id} className="page-card" style={{ padding: "1rem" }}>
 										<div>
-											<span className={`status-chip ${aid.adminStatus === "APPROVED" ? "status-chip--verified" : aid.adminStatus === "REJECTED" ? "status-chip--rejected" : "status-chip--pending"}`}>
-												Admin: {asText(aid.adminStatus) || "PENDING"}
-											</span>
-											<h3>{asText(aid.aidType) || "Aid Type"} | Qty: {aid.quantity ?? "-"}</h3>
-											<p>
-												{asText(aid.location?.city) || "City"}, {asText(aid.location?.district) || "District"}, {asText(aid.location?.province) || "Province"}, {asText(aid.location?.country) || "Country"}
-											</p>
-											<p style={{ marginTop: "0.3rem" }}>
-												Distribution: {asText(aid.distributionStatus) || "PENDING"}
-											</p>
-											<p style={{ marginTop: "0.3rem", fontSize: "0.8rem", color: "#6f84b3" }}>
-												Damage Report ID: {asText(aid.damageReportId) || "-"}
-											</p>
+											<div style={{ display: "flex", justifyContent: "space-between", gap: "0.8rem", alignItems: "center" }}>
+												<div style={{ display: "inline-flex", width: "2.5rem", height: "2.5rem", borderRadius: "12px", background: "#dfe9ff", color: "#1b56cb", alignItems: "center", justifyContent: "center", fontSize: "1.1rem" }}>
+													{getAidIcon(aid.aidType)}
+												</div>
+												<span
+													style={{
+														display: "inline-flex",
+														alignItems: "center",
+														padding: "0.26rem 0.65rem",
+														borderRadius: "999px",
+														fontSize: "0.66rem",
+														fontWeight: 800,
+														textTransform: "uppercase",
+														letterSpacing: "0.07em",
+														...getAdminTone(aid.adminStatus),
+													}}
+												>
+													Admin: {asText(aid.adminStatus) || "PENDING"}
+												</span>
+											</div>
+
+											<h3 style={{ marginTop: "0.7rem", marginBottom: "0.25rem", letterSpacing: "-0.02em" }}>{asText(aid.aidType) || "Aid Type"}</h3>
+											<p style={{ color: "#1b56cb", fontWeight: 700, marginBottom: "0.6rem" }}>Quantity: {aid.quantity ?? "-"} Units</p>
+
+											<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.8rem", borderTop: "1px solid rgba(191, 219, 254, 0.55)", borderBottom: "1px solid rgba(191, 219, 254, 0.55)", padding: "0.7rem 0", marginBottom: "0.8rem" }}>
+												<div>
+													<p style={{ fontSize: "0.64rem", color: "#7b90ba", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.3rem" }}>Primary Location</p>
+													<p style={{ margin: 0, color: "#546c9d", fontSize: "0.9rem" }}>
+														<span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}><MdOutlineLocationOn color="#2563eb" />{asText(aid.location?.city) || "City"}, {asText(aid.location?.district) || "District"}, {asText(aid.location?.province) || "Province"}, {asText(aid.location?.country) || "Country"}</span>
+													</p>
+												</div>
+												<div>
+													<p style={{ fontSize: "0.64rem", color: "#7b90ba", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.3rem" }}>Logistics Status</p>
+													<p style={{ margin: 0, display: "inline-flex", alignItems: "center", gap: "0.35rem", fontWeight: 700, color: getDistributionTone(aid.distributionStatus).color }}>
+														<span style={{ width: "0.45rem", height: "0.45rem", borderRadius: "999px", background: getDistributionTone(aid.distributionStatus).bullet }} />
+														{getDistributionTone(aid.distributionStatus).label}
+													</p>
+												</div>
+											</div>
+
+											<p style={{ marginBottom: "0.6rem", fontSize: "0.75rem", color: "#8ca1c8" }}>ID: {asText(aid.damageReportId) || "-"}</p>
 										</div>
-										<div className="admin-verification-actions">
+										<div className="admin-verification-actions" style={{ gap: "0.55rem" }}>
 											<button
 												type="button"
 												className="btn-primary"
+												style={{ minWidth: "102px", color: "#fff", background: "linear-gradient(135deg, #1f78d1 , #2563eb   )" }}
 												onClick={() => handleAdminDecision(aid._id, "APPROVED")}
 												disabled={updatingId === aid._id}
 											>
@@ -173,7 +290,8 @@ const AidApproval = () => {
 											<button
 												type="button"
 												className="btn-danger"
-												onClick={() => handleAdminDecision(aid._id, "REJECTED")}
+												style={{ minWidth: "94px", color: "#fff", background: "linear-gradient(135deg, #dc2626 , #ef4444  )" }}
+												onClick={() => handleAdminDecision(aid._id, "REJECTED")}s
 												disabled={updatingId === aid._id}
 											>
 												{updatingId === aid._id ? "Saving..." : "Reject"}
@@ -187,6 +305,7 @@ const AidApproval = () => {
 													}))
 												}
 												disabled={updatingId === aid._id}
+												style={{ minWidth: "166px", borderRadius: "10px", padding: "0.62rem 0.7rem" }}
 											>
 												{distributionOptions.map((status) => (
 													<option key={status} value={status}>{status}</option>
@@ -195,16 +314,61 @@ const AidApproval = () => {
 											<button
 												type="button"
 												className="btn-secondary"
+												style={{ minWidth: "164px", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
 												onClick={() => handleDistributionSave(aid)}
 												disabled={updatingId === aid._id}
 											>
-												{updatingId === aid._id ? "Saving..." : "Update Distribution"}
+												<MdLocalShipping /> {updatingId === aid._id ? "Saving..." : "Update Distribution"}
 											</button>
 										</div>
 									</article>
 								))}
 							</div>
 						)}
+
+						<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem", marginTop: "1.05rem" }}>
+							<div className="page-card" style={{ padding: "0", overflow: "hidden" }}>
+								<div
+									style={{
+										height: "210px",
+										background:
+											"linear-gradient(130deg, rgba(8,37,79,0.92), rgba(17,80,150,0.84)), radial-gradient(circle at 70% 65%, rgba(98,175,255,0.45), transparent 35%), radial-gradient(circle at 35% 25%, rgba(255,255,255,0.18), transparent 42%)",
+										position: "relative",
+									}}
+								>
+									<div style={{ position: "absolute", left: "0.8rem", bottom: "0.8rem", color: "#dbeaff", fontSize: "0.76rem", letterSpacing: "0.07em", textTransform: "uppercase", background: "rgba(255,255,255,0.14)", padding: "0.45rem 0.65rem", borderRadius: "999px" }}>
+										Operational View: Active Districts
+									</div>
+								</div>
+							</div>
+
+							<div className="page-card" style={{ padding: "1rem" }}>
+								<h3 style={{ marginBottom: "0.85rem" }}>Response Velocity</h3>
+								<div style={{ marginBottom: "0.7rem" }}>
+									<div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "#5f79ab", marginBottom: "0.3rem" }}>
+										<span>Triage Time</span>
+										<span>14m</span>
+									</div>
+									<div style={{ height: "6px", background: "#dbe6fb", borderRadius: "999px", overflow: "hidden" }}>
+										<div style={{ width: "86%", height: "100%", background: "#1f5fd2" }} />
+									</div>
+								</div>
+
+								<div>
+									<div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "#5f79ab", marginBottom: "0.3rem" }}>
+										<span>Resource Matching</span>
+										<span>2.4h</span>
+									</div>
+									<div style={{ height: "6px", background: "#dbe6fb", borderRadius: "999px", overflow: "hidden" }}>
+										<div style={{ width: "58%", height: "100%", background: "#6e8fcb" }} />
+									</div>
+								</div>
+
+								<p style={{ marginTop: "0.9rem", color: "#7c90ba", fontSize: "0.82rem", lineHeight: 1.5 }}>
+									System performance is within optimal response parameters for current active disaster zones.
+								</p>
+							</div>
+						</div>
 					</div>
 				</section>
 			</main>
