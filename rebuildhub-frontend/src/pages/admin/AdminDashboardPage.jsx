@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getDisasters, verifyDisaster } from "../../services/disasterService";
 import Loader from "../../components/common/Loader";
+import { clearAuthSession } from "../../services/authSession";
 
 const commandSections = [
   {
@@ -58,10 +59,8 @@ const AdminDashboardPage = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("user");
-    navigate("/admin/login", { replace: true });
+    clearAuthSession();
+    navigate("/", { replace: true });
   };
 
   const handleVerify = async (id, status) => {

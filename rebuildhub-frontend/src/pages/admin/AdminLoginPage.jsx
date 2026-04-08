@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../services/authService";
+import { getAuthSession, setAuthSession } from "../../services/authSession";
 
 const allowedRoles = ["admin", "inventory_manager", "volunteer"];
 
@@ -12,8 +13,7 @@ const AdminLoginPage = () => {
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
+    const { token, role } = getAuthSession();
 
     if (token && role === "admin") {
       navigate("/dashboard", { replace: true });
@@ -40,9 +40,7 @@ const AdminLoginPage = () => {
         return;
       }
 
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("role", user.role);
-      localStorage.setItem("user", JSON.stringify(user));
+      setAuthSession({ token: response.data.token, role: user.role, user });
 
       if (user.role === "admin") {
         navigate("/dashboard", { replace: true });
