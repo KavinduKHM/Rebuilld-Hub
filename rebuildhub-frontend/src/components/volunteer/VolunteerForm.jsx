@@ -34,6 +34,7 @@ const skillOptions = [
 const initialFormState = {
   fullName: "",
   email: "",
+  password: "",
   phone: "",
   district: "",
   skills: [],
@@ -75,6 +76,7 @@ const VolunteerForm = () => {
     const payload = {
       name: formData.fullName.trim(),
       email: formData.email.trim(),
+      password: formData.password,
       phone: formData.phone.trim(),
       district: formData.district,
       skills: formData.skills,
@@ -132,6 +134,18 @@ const VolunteerForm = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
+              />
+            </div>
+            <div className="input-field">
+              <label>PASSWORD</label>
+              <input
+                type="password"
+                name="password"
+                placeholder="Create a password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength={6}
               />
             </div>
             <div className="input-field">

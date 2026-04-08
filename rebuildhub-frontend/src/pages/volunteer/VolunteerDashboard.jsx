@@ -1,14 +1,14 @@
 // src/pages/volunteer/VolunteerDashboard.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "./VolunteerDashboard.css";
+import "../../assets/styles/global.css";
 
 import EventsMap from "./components/EventsMap";
 import EventCard from "./components/EventCard";
 import ProfileEditor from "./components/ProfileEditor";
-
-// Sample volunteer ID - in production, get from auth context
-const VOLUNTEER_ID = "69a18981f1c2f1fbd3726413";
+import { clearAuthSession, getAuthSession } from "../../services/authSession";
 
 // Demo events data for fallback (moved inside component scope)
 const demoEvents = [
@@ -93,6 +93,7 @@ const normalizeCategory = (value) => {
 };
 
 const VolunteerDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [volunteer, setVolunteer] = useState(null);
   const [events, setEvents] = useState([]);
@@ -103,27 +104,70 @@ const VolunteerDashboard = () => {
   const [selectedLocation, setSelectedLocation] = useState("worldwide");
   const [statusMessage, setStatusMessage] = useState("");
   const [showProfileEditor, setShowProfileEditor] = useState(false); // Changed from editingProfile
+  const [sessionUser, setSessionUser] = useState(null);
+
+  useEffect(() => {
+    const { token, role, user } = getAuthSession();
+    if (!token || role !== "volunteer") {
+      navigate("/admin/login", { replace: true });
+      return;
+    }
+    setSessionUser(user || null);
+  }, [navigate]);
 
   // Fetch volunteer data
   const fetchVolunteer = useCallback(async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:5000/api/volunteers/${VOLUNTEER_ID}`,
-      );
-      const profile = asObject(response.data);
+    if (!sessionUser) return;
+
+    const sessionVolunteerId = sessionUser?.volunteerId;
+
+    const applyProfile = (profile) => {
       setVolunteer({
         ...profile,
         availability: toAvailability(profile?.availability),
         status: toStatus(profile),
         location: profile?.district || profile?.location,
       });
+    };
+
+    try {
+      if (sessionUser?.email) {
+        const allResponse = await axios.get("http://localhost:5000/api/volunteers");
+        const records = asArray(allResponse.data);
+        const matched = records.find(
+          (item) => (item?.email || "").toLowerCase() === sessionUser.email.toLowerCase(),
+        );
+
+        if (matched?._id || matched?.volunteerId) {
+          applyProfile(matched);
+          return;
+        }
+      }
+
+      if (sessionVolunteerId) {
+        try {
+          const response = await axios.get(
+            `http://localhost:5000/api/volunteers/${sessionVolunteerId}`,
+          );
+          const profile = asObject(response.data);
+
+          if (profile?._id || profile?.volunteerId) {
+            applyProfile(profile);
+            return;
+          }
+        } catch (idError) {
+          console.warn("Volunteer lookup by session volunteerId failed:", idError);
+        }
+      }
+
+      throw new Error("Volunteer profile not found for logged in user");
     } catch (error) {
       console.error("Error fetching volunteer:", error);
       // Demo data if API fails
-      setVolunteer({
+      applyProfile({
         _id: "demo123",
-        name: "Alex Rivera",
-        email: "alex@example.com",
+        name: sessionUser?.name || "Volunteer",
+        email: sessionUser?.email || "volunteer@example.com",
         phone: "+94 77 123 4567",
         location: "Colombo",
         skills: ["First Aid", "Rescue", "Medical"],
@@ -133,7 +177,7 @@ const VolunteerDashboard = () => {
         bio: "Experienced first responder with 5 years in disaster relief",
       });
     }
-  }, []);
+  }, [sessionUser]);
 
   // Fetch events
   const fetchEvents = useCallback(async () => {
@@ -240,70 +284,87 @@ const VolunteerDashboard = () => {
     setTimeout(() => setStatusMessage(""), 3000);
   };
 
+  const handleLogout = () => {
+    clearAuthSession();
+    navigate("/", { replace: true });
+  };
+
   if (!volunteer) {
     return <div className="dashboard-loading">Loading...</div>;
   }
 
   return (
-    <div className="volunteer-dashboard">
+    <div className="admin-shell volunteer-dashboard-shell">
       {/* Sidebar */}
-      <aside className="dashboard-sidebar">
+      <aside className="admin-sidebar page-card dashboard-sidebar">
         <div className="sidebar-header">
           <div className="logo">
             <span className="material-symbols-outlined">hub</span>
             <div>
               <h1>RebuildHub</h1>
-              <p>Command Center</p>
+              <p>Volunteer Operations</p>
             </div>
           </div>
         </div>
 
-        <nav className="sidebar-nav">
+        <div className="admin-status-pill">Status: Volunteer Active</div>
+
+        <nav className="admin-nav sidebar-nav">
           <button
-            className={`nav-item ${activeTab === "dashboard" ? "active" : ""}`}
+            className={`admin-nav-link nav-item ${activeTab === "dashboard" ? "admin-nav-link--active active" : ""}`}
             onClick={() => setActiveTab("dashboard")}
+            type="button"
           >
             <span className="material-symbols-outlined">dashboard</span>
             <span>Dashboard</span>
           </button>
           <button
-            className={`nav-item ${activeTab === "events" ? "active" : ""}`}
+            className={`admin-nav-link nav-item ${activeTab === "events" ? "admin-nav-link--active active" : ""}`}
             onClick={() => setActiveTab("events")}
+            type="button"
           >
             <span className="material-symbols-outlined">event</span>
             <span>Live Events</span>
           </button>
           <button
-            className={`nav-item ${activeTab === "profile" ? "active" : ""}`}
+            className={`admin-nav-link nav-item ${activeTab === "profile" ? "admin-nav-link--active active" : ""}`}
             onClick={() => setActiveTab("profile")}
+            type="button"
           >
             <span className="material-symbols-outlined">person</span>
             <span>My Profile</span>
           </button>
         </nav>
 
-        <div className="sidebar-footer">
-          <div className="status-indicator">
-            <span className={`status-dot ${volunteer.availability}`}></span>
-            <span>
-              {volunteer.availability === "available"
-                ? "Available"
-                : "Unavailable"}
-            </span>
+        <div className="admin-sidebar-footer sidebar-footer">
+          <div className={`sidebar-availability ${volunteer.availability}`}>
+            <span className={`sidebar-status-dot ${volunteer.availability}`}></span>
+            <div className="sidebar-status-text">
+              <small>Current Duty</small>
+              <span>
+                {volunteer.availability === "available"
+                  ? "Available"
+                  : "Unavailable"}
+              </span>
+            </div>
           </div>
+          <button className="btn-secondary admin-sidebar-action" type="button" onClick={handleLogout}>
+            Logout
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="dashboard-main">
+      <main className="admin-main dashboard-main">
         {/* Status Message */}
         {statusMessage && <div className="status-toast">{statusMessage}</div>}
 
         {activeTab === "dashboard" && (
           <>
             {/* Welcome Header */}
-            <div className="dashboard-header">
+            <div className="admin-topbar page-card dashboard-header">
               <div>
+                <span className="section-label">Volunteer Command</span>
                 <h1>
                   Welcome back, {volunteer.name?.split(" ")[0] || "Volunteer"}
                 </h1>
@@ -322,22 +383,22 @@ const VolunteerDashboard = () => {
             </div>
 
             {/* Stats Grid */}
-            <div className="stats-grid">
-              <div className="stat-card">
+            <div className="admin-section-grid stats-grid">
+              <div className="admin-section-card page-card stat-card">
                 <div>
                   <p>Active Disasters</p>
                   <h3>{filteredEvents.length}</h3>
                 </div>
                 <span className="material-symbols-outlined">warning</span>
               </div>
-              <div className="stat-card">
+              <div className="admin-section-card page-card stat-card">
                 <div>
                   <p>Your Skills</p>
                   <h3>{volunteer.skills?.length || 0}</h3>
                 </div>
                 <span className="material-symbols-outlined">verified</span>
               </div>
-              <div className="stat-card">
+              <div className="admin-section-card page-card stat-card">
                 <div>
                   <p>Availability</p>
                   <h3 className={volunteer.availability}>
@@ -351,7 +412,7 @@ const VolunteerDashboard = () => {
             </div>
 
             {/* Recent Events Preview */}
-            <div className="events-preview">
+            <div className="admin-panel page-card events-preview">
               <div className="section-header">
                 <h2>Recent Disaster Events</h2>
                 <button onClick={() => setActiveTab("events")}>
@@ -374,7 +435,7 @@ const VolunteerDashboard = () => {
 
         {activeTab === "events" && (
           <>
-            <div className="events-header">
+            <div className="admin-panel page-card events-header">
               <h1>Live Disaster Events</h1>
               <div className="events-filters">
                 <select
@@ -407,16 +468,18 @@ const VolunteerDashboard = () => {
             </div>
 
             {/* Map Component */}
-            <EventsMap
-              events={filteredEvents}
-              onEventSelect={(event) => console.log("Selected:", event)}
-            />
+            <div className="admin-panel page-card">
+              <EventsMap
+                events={filteredEvents}
+                onEventSelect={(event) => console.log("Selected:", event)}
+              />
+            </div>
 
             {/* Event Cards */}
             {loading ? (
               <div className="loading">Loading events...</div>
             ) : (
-              <div className="events-full-grid">
+              <div className="events-full-grid admin-section-grid">
                 {filteredEvents.map((event) => (
                   <EventCard
                     key={event._id || event.nasaEventId || event.id}

@@ -2,6 +2,19 @@
 import React, { useState } from "react";
 import axios from "axios";
 
+const isObjectId = (value) => /^[0-9a-fA-F]{24}$/.test((value || "").toString());
+
+const resolveVolunteerId = (volunteer) => {
+  if (isObjectId(volunteer?._id)) return volunteer._id;
+
+  const numericVolunteerId = Number(volunteer?.volunteerId);
+  if (Number.isInteger(numericVolunteerId) && numericVolunteerId > 0) {
+    return String(numericVolunteerId);
+  }
+
+  return "";
+};
+
 const ProfileEditor = ({ volunteer, onUpdate, onClose }) => {
   const [formData, setFormData] = useState({
     name: volunteer.name || "",
@@ -46,6 +59,16 @@ const ProfileEditor = ({ volunteer, onUpdate, onClose }) => {
     setLoading(true);
     setMessage("");
 
+    const volunteerId = resolveVolunteerId(volunteer);
+    if (!volunteerId) {
+      setMessage({
+        type: "error",
+        text: "Unable to save profile because the volunteer id is missing or invalid.",
+      });
+      setLoading(false);
+      return;
+    }
+
     const payload = {
       ...formData,
       availability:
@@ -54,7 +77,7 @@ const ProfileEditor = ({ volunteer, onUpdate, onClose }) => {
 
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/volunteers/${volunteer._id}`,
+        `http://localhost:5000/api/volunteers/${volunteerId}`,
         payload,
       );
       setMessage({ type: "success", text: "Profile updated successfully!" });
