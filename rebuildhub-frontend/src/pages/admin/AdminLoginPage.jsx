@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../services/authService";
 import { getAuthSession, setAuthSession } from "../../services/authSession";
+import "../../assets/styles/global.css";
 
 const allowedRoles = ["admin", "inventory_manager", "volunteer"];
 
