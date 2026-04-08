@@ -43,6 +43,13 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
+        const allowedLoginRoles = ["admin", "inventory_manager", "volunteer", "seeker"];
+        if (!allowedLoginRoles.includes(user.role)) {
+            return res.status(403).json({
+                message: "This account is not allowed to sign in",
+            });
+        }
+
         const token = jwt.sign(
             { id: user._id, role: user.role },
             process.env.JWT_SECRET,

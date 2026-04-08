@@ -44,12 +44,28 @@ exports.getReportsByDisaster = async (req, res) => {
   }
 };
 
+exports.getReportById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const report = await damageService.getReportById(id);
+
+    res.status(200).json({
+      success: true,
+      data: report,
+    });
+  } catch (error) {
+    const statusCode = error.message === "Report not found" ? 404 : 400;
+    res.status(statusCode).json({ message: error.message });
+  }
+};
+
 exports.verifyReport = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+    const normalizedStatus = status === "Verified" ? "Approved" : status;
 
-    const report = await damageService.verifyReport(id, status);
+    const report = await damageService.verifyReport(id, normalizedStatus);
 
     res.status(200).json({
       success: true,

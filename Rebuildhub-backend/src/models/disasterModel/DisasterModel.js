@@ -25,10 +25,15 @@ const disasterSchema = new mongoose.Schema(
       enum: ["Low", "Medium", "High", "Critical"],
       default: "Medium",
     },
+    verificationStatus: {
+      type: String,
+      enum: ["Pending", "Verified", "Rejected"],
+      default: "Pending",
+    },
     status: {
       type: String,
       enum: ["Active", "Under Assessment", "Resolved"],
-      default: "Active",
+      default: "Under Assessment",
     },
     images: [
       {
@@ -39,6 +44,12 @@ const disasterSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    assignedVolunteers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Volunteer",
+      },
+    ],
   },
   { timestamps: true }
 );
