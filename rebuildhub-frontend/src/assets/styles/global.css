@@ -672,6 +672,305 @@ a {
   box-shadow: var(--shadow-soft);
 }
 
+.disaster-detail-shell {
+  padding-top: 1.2rem;
+}
+
+.detail-command-strip {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.detail-command-strip .page-title {
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+  margin-bottom: 0.2rem;
+}
+
+.detail-command-strip .page-subtitle {
+  font-size: 0.9rem;
+}
+
+.detail-command-actions {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.detail-layout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.9fr);
+  gap: 1rem;
+}
+
+.detail-main-column,
+.detail-side-column {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.incident-card h2 {
+  font-size: clamp(2rem, 3.2vw, 3.1rem);
+  line-height: 0.96;
+  margin-bottom: 0.7rem;
+  letter-spacing: -0.04em;
+}
+
+.incident-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.incident-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.28rem 0.66rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.incident-badge--critical {
+  background: #fde8ea;
+  color: #b4232d;
+}
+
+.incident-badge--high {
+  background: #fff4dc;
+  color: #b86d06;
+}
+
+.incident-badge--medium {
+  background: #e8f1ff;
+  color: #2057b7;
+}
+
+.incident-badge--low {
+  background: #eaf8ef;
+  color: #1c7c4e;
+}
+
+.incident-badge--status {
+  background: #eef4ff;
+  color: #244989;
+}
+
+.incident-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  color: #6378a6;
+  font-size: 0.84rem;
+  margin-bottom: 0.9rem;
+}
+
+.incident-meta-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.incident-description {
+  background: #f4f8ff;
+  border: 1px solid rgba(191, 219, 254, 0.65);
+  border-radius: 14px;
+  padding: 0.95rem;
+  line-height: 1.65;
+  color: #1d335f;
+}
+
+.evidence-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.7rem;
+}
+
+.evidence-panel__header h3,
+.operation-log-panel h3,
+.detail-map-panel h3,
+.assessments-panel h3 {
+  margin: 0;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #4f6b9d;
+  font-size: 0.78rem;
+}
+
+.evidence-panel__header span {
+  font-size: 0.7rem;
+  color: #2f5dc7;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.evidence-grid img {
+  width: 100%;
+  height: 135px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #d7deea;
+}
+
+.operation-log-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.operation-log-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: start;
+  border: 1px solid rgba(191, 219, 254, 0.62);
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  background: rgba(248, 250, 255, 0.9);
+}
+
+.operation-log-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: 0.3rem;
+  border-radius: 999px;
+  background: #7f94bb;
+}
+
+.operation-log-dot--safe {
+  background: #2b9d76;
+}
+
+.operation-log-dot--risk {
+  background: #d73f4a;
+}
+
+.operation-log-item strong {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.operation-log-item p {
+  color: var(--ink-sub);
+  line-height: 1.5;
+}
+
+.operation-log-item small {
+  color: #7f93bf;
+  font-size: 0.72rem;
+}
+
+.detail-map-panel .leaflet-container {
+  border-radius: 14px;
+  border: 1px solid #d7deea;
+}
+
+.assessments-panel {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.assessment-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.assessment-card {
+  border: 1px solid rgba(191, 219, 254, 0.66);
+  border-radius: 14px;
+  padding: 0.82rem;
+  background: rgba(248, 250, 255, 0.93);
+  display: grid;
+  gap: 0.58rem;
+}
+
+.assessment-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.assessment-card__type {
+  color: #3b598f;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 0.72rem;
+}
+
+.assessment-card__description {
+  color: var(--ink-sub);
+  line-height: 1.55;
+}
+
+.assessment-card__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  align-items: end;
+}
+
+.assessment-card__footer span {
+  color: #7b8eb6;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+}
+
+.assessment-card__footer strong {
+  font-size: 1.15rem;
+  letter-spacing: -0.03em;
+}
+
+.assessment-card__actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.detail-bottom-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.detail-bottom-metrics div {
+  border: 1px solid rgba(191, 219, 254, 0.62);
+  border-radius: 12px;
+  padding: 0.72rem 0.82rem;
+  background: #f8fbff;
+}
+
+.detail-bottom-metrics span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #7188b3;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.66rem;
+}
+
+.detail-bottom-metrics strong {
+  font-size: 1.05rem;
+  color: #10214d;
+}
+
 .loading-state {
   min-height: 50vh;
   display: grid;
@@ -1547,6 +1846,36 @@ textarea:focus {
 }
 
 @media (max-width: 980px) {
+  .detail-command-strip,
+  .detail-layout-grid,
+  .detail-bottom-metrics,
+  .assessment-card__header,
+  .assessment-card__footer {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-command-strip,
+  .detail-command-actions,
+  .assessment-card__actions {
+    justify-content: flex-start;
+  }
+
+  .detail-layout-grid {
+    display: grid;
+  }
+
+  .evidence-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .operation-log-item {
+    grid-template-columns: auto 1fr;
+  }
+
+  .operation-log-item small {
+    grid-column: 2;
+  }
+
   .admin-shell,
   .admin-login-shell {
     grid-template-columns: 1fr;
@@ -1638,6 +1967,11 @@ textarea:focus {
 }
 
 @media (max-width: 720px) {
+  .evidence-grid,
+  .detail-bottom-metrics {
+    grid-template-columns: 1fr;
+  }
+
   .container {
     padding: 0 1rem;
   }

@@ -56,7 +56,7 @@ const DamageReportDetails = () => {
           <p><strong>Description:</strong> {report.damageDescription}</p>
           <p><strong>Estimated Loss:</strong> ${report.estimatedLoss?.toLocaleString()}</p>
           <p><strong>Verification Status:</strong> 
-            <span className={`status-chip ${report.verificationStatus === "Verified" ? "status-chip--verified" : report.verificationStatus === "Rejected" ? "status-chip--rejected" : "status-chip--pending"}`}>
+            <span className={`status-chip ${(report.verificationStatus === "Verified" || report.verificationStatus === "Approved") ? "status-chip--verified" : report.verificationStatus === "Rejected" ? "status-chip--rejected" : "status-chip--pending"}`}>
               {report.verificationStatus}
             </span>
           </p>
@@ -90,7 +90,7 @@ const DamageReportDetails = () => {
 
           {role === "admin" && report.verificationStatus === "Pending" && (
             <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-              <button onClick={() => handleVerify("Verified")} className="btn-primary">Verify Report</button>
+              <button onClick={() => handleVerify("Approved")} className="btn-primary">Approve Report</button>
               <button onClick={() => handleVerify("Rejected")} className="btn-danger">Reject Report</button>
             </div>
           )}

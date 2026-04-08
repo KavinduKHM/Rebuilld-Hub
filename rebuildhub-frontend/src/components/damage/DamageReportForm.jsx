@@ -22,6 +22,8 @@ const DamageReportForm = () => {
     getDisasters().then(res => setDisasters(res.data));
   }, []);
 
+  const verifiedDisasters = disasters.filter((d) => d.verificationStatus === "Verified");
+
   useEffect(() => {
     const prefill = location.state?.prefillReport;
     if (!prefill) return;
@@ -70,7 +72,7 @@ const DamageReportForm = () => {
       alert("Damage report submitted!");
       window.location.href = "/disasters";
     } catch (err) {
-      alert("Submission failed");
+      alert(err?.response?.data?.message || "Submission failed");
     } finally {
       setLoading(false);
     }
@@ -91,8 +93,11 @@ const DamageReportForm = () => {
         <form onSubmit={handleSubmit} className="page-card detail-stack">
           <select name="disasterId" value={form.disasterId} onChange={handleChange} required>
             <option value="">Select Disaster</option>
-            {disasters.map(d => <option key={d._id} value={d._id}>{d.title}</option>)}
+            {verifiedDisasters.map(d => <option key={d._id} value={d._id}>{d.title}</option>)}
           </select>
+          {verifiedDisasters.length === 0 && (
+            <p className="empty-state">No verified disasters available yet. Reports can be submitted only after admin verifies a disaster.</p>
+          )}
           <input name="reporterName" placeholder="Your Name" value={form.reporterName} onChange={handleChange} required />
           <input name="contactNumber" placeholder="Contact Number" value={form.contactNumber} onChange={handleChange} required />
           <select name="damageType" value={form.damageType} onChange={handleChange}>
