@@ -104,7 +104,7 @@ const DamageReportForm = () => {
             <option>Infrastructure</option><option>Housing</option><option>Medical</option><option>Agriculture</option><option>Other</option>
           </select>
           <textarea name="damageDescription" placeholder="Describe damage" value={form.damageDescription} onChange={handleChange} required />
-          <input name="estimatedLoss" placeholder="Estimated Loss ($)" type="number" value={form.estimatedLoss} onChange={handleChange} />
+          <input name="estimatedLoss" placeholder="Estimated Loss (LKR)" type="number" value={form.estimatedLoss} onChange={handleChange} />
           <input name="location.latitude" placeholder="Latitude" type="number" step="any" value={form.location.latitude} onChange={handleChange} />
           <input name="location.longitude" placeholder="Longitude" type="number" step="any" value={form.location.longitude} onChange={handleChange} />
           <input name="location.address" placeholder="Address" value={form.location.address} onChange={handleChange} />

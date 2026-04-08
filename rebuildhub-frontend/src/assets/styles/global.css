@@ -978,6 +978,144 @@ a {
   color: var(--ink-sub);
 }
 
+.damage-detail-shell {
+  padding-top: 1.5rem;
+}
+
+.damage-detail-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.2rem;
+  align-items: center;
+}
+
+.damage-detail-meta {
+  display: grid;
+  gap: 0.6rem;
+  text-align: right;
+}
+
+.damage-detail-meta small {
+  color: #6b85b7;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.66rem;
+}
+
+.damage-detail-meta strong {
+  font-size: 1.3rem;
+  letter-spacing: -0.03em;
+  color: #10214d;
+}
+
+.damage-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.85fr);
+  gap: 1rem;
+}
+
+.damage-detail-main,
+.damage-detail-side {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.damage-detail-summary h2 {
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+  margin-bottom: 0.45rem;
+  letter-spacing: -0.03em;
+}
+
+.damage-detail-description {
+  color: var(--ink-sub);
+  line-height: 1.65;
+  margin-bottom: 0.9rem;
+}
+
+.damage-detail-badges {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.damage-detail-badges div {
+  background: rgba(244, 248, 255, 0.9);
+  border: 1px solid rgba(191, 219, 254, 0.6);
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+}
+
+.damage-detail-badges span {
+  display: block;
+  color: #6f84b3;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.3rem;
+}
+
+.damage-detail-badges strong {
+  font-size: 0.95rem;
+  color: #10214d;
+  word-break: break-word;
+}
+
+.damage-detail-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.damage-detail-section-head strong {
+  font-size: 0.8rem;
+  color: #2f5dc7;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.damage-detail-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.damage-detail-evidence-grid img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #d7deea;
+}
+
+.damage-detail-location-info p {
+  margin-bottom: 0.4rem;
+  color: #1d335f;
+}
+
+.damage-detail-actions {
+  display: grid;
+  gap: 0.6rem;
+}
+
+@media (max-width: 980px) {
+  .damage-detail-header,
+  .damage-detail-grid,
+  .damage-detail-badges {
+    grid-template-columns: 1fr;
+  }
+
+  .damage-detail-header {
+    align-items: flex-start;
+  }
+
+  .damage-detail-meta {
+    text-align: left;
+  }
+}
+
 .empty-state {
   background: rgba(255, 255, 255, 0.76);
   border: 1px dashed rgba(147, 197, 253, 0.75);
@@ -1341,6 +1479,27 @@ a {
   display: flex;
   gap: 0.45rem;
   flex-wrap: wrap;
+}
+
+.tac-incident-edit {
+  display: grid;
+  gap: 0.6rem;
+  background: rgba(244, 248, 255, 0.92);
+  border: 1px solid #d3e0f8;
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+.tac-incident-edit input,
+.tac-incident-edit textarea,
+.tac-incident-edit select {
+  width: 100%;
+}
+
+.tac-incident-edit__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
 }
 
 .tac-incident-actions .btn-secondary,
@@ -2233,6 +2392,12 @@ a {
   height: 100%;
   min-height: 360px;
   border: 0;
+}
+
+.world-map-panel .leaflet-container {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
 }
 
 .site-footer {

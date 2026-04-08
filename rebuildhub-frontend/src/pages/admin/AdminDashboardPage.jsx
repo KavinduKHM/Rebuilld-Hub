@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getDisasters, verifyDisaster } from "../../services/disasterService";
+import { deleteDisaster, getDisasters, updateDisaster, verifyDisaster } from "../../services/disasterService";
 import Loader from "../../components/common/Loader";
 import { clearAuthSession } from "../../services/authSession";
 
@@ -48,6 +48,15 @@ const AdminDashboardPage = () => {
   const [disasters, setDisasters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState("");
+  const [editingId, setEditingId] = useState("");
+  const [editForm, setEditForm] = useState({
+    title: "",
+    type: "Flood",
+    description: "",
+    severityLevel: "Medium",
+    status: "Under Assessment",
+  });
+  const [editImages, setEditImages] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [clock, setClock] = useState(() => formatClock(new Date()));
@@ -85,6 +94,68 @@ const AdminDashboardPage = () => {
     setUpdatingId(id);
     try {
       await verifyDisaster(id, status);
+      await fetchDisasters();
+    } finally {
+      setUpdatingId("");
+    }
+  };
+
+  const startEdit = (disaster) => {
+    setEditingId(disaster._id);
+    setEditForm({
+      title: disaster.title || "",
+      type: disaster.type || "Flood",
+      description: disaster.description || "",
+      severityLevel: disaster.severityLevel || "Medium",
+      status: disaster.status || "Under Assessment",
+    });
+    setEditImages([]);
+  };
+
+  const cancelEdit = () => {
+    setEditingId("");
+    setEditImages([]);
+  };
+
+  const handleEditChange = (event) => {
+    const { name, value } = event.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditImages = (event) => {
+    setEditImages(Array.from(event.target.files || []));
+  };
+
+  const handleUpdate = async (id) => {
+    setUpdatingId(id);
+    try {
+      if (editImages.length > 0) {
+        const data = new FormData();
+        data.append("title", editForm.title);
+        data.append("type", editForm.type);
+        data.append("description", editForm.description);
+        data.append("severityLevel", editForm.severityLevel);
+        data.append("status", editForm.status);
+        editImages.forEach((image) => data.append("images", image));
+        await updateDisaster(id, data);
+      } else {
+        await updateDisaster(id, { ...editForm });
+      }
+      await fetchDisasters();
+      setEditingId("");
+      setEditImages([]);
+    } finally {
+      setUpdatingId("");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirmed = window.confirm("Delete this disaster? This action cannot be undone.");
+    if (!confirmed) return;
+
+    setUpdatingId(id);
+    try {
+      await deleteDisaster(id);
       await fetchDisasters();
     } finally {
       setUpdatingId("");
@@ -343,11 +414,76 @@ const AdminDashboardPage = () => {
                             <strong>{disaster.status || "Under Assessment"}</strong>
                           </div>
                         </div>
-
-                        <div className="tac-incident-actions">
-                          <Link to={`/disasters/${disaster._id}`} className="btn-secondary">Details</Link>
-                          
-                        </div>
+                        {editingId === disaster._id ? (
+                          <div className="tac-incident-edit">
+                            <input
+                              name="title"
+                              value={editForm.title}
+                              onChange={handleEditChange}
+                              placeholder="Title"
+                            />
+                            <select name="type" value={editForm.type} onChange={handleEditChange}>
+                              <option>Flood</option>
+                              <option>Earthquake</option>
+                              <option>Landslide</option>
+                              <option>Cyclone</option>
+                              <option>Other</option>
+                            </select>
+                            <textarea
+                              name="description"
+                              value={editForm.description}
+                              onChange={handleEditChange}
+                              placeholder="Description"
+                              rows={3}
+                            />
+                            <div className="tac-incident-edit__row">
+                              <select name="severityLevel" value={editForm.severityLevel} onChange={handleEditChange}>
+                                <option>Low</option>
+                                <option>Medium</option>
+                                <option>High</option>
+                                <option>Critical</option>
+                              </select>
+                              <select name="status" value={editForm.status} onChange={handleEditChange}>
+                                <option>Under Assessment</option>
+                                <option>Active</option>
+                                <option>Resolved</option>
+                              </select>
+                            </div>
+                            <input type="file" multiple accept="image/*" onChange={handleEditImages} />
+                            <div className="tac-incident-actions">
+                              <button
+                                type="button"
+                                className="btn-primary"
+                                onClick={() => handleUpdate(disaster._id)}
+                                disabled={updatingId === disaster._id}
+                              >
+                                {updatingId === disaster._id ? "Saving..." : "Save"}
+                              </button>
+                              <button type="button" className="btn-secondary" onClick={cancelEdit}>
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="tac-incident-actions">
+                            <Link to={`/disasters/${disaster._id}`} className="btn-secondary">Details</Link>
+                            <button
+                              type="button"
+                              className="btn-secondary"
+                              onClick={() => startEdit(disaster)}
+                            >
+                              Update
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-danger"
+                              onClick={() => handleDelete(disaster._id)}
+                              disabled={updatingId === disaster._id}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </article>
                   ))}

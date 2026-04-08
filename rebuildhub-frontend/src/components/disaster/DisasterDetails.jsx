@@ -7,6 +7,7 @@ import { getDisasterById } from "../../services/disasterService";
 import { getReportsByDisaster, verifyReport } from "../../services/damageService";
 import { verifyDisaster } from "../../services/disasterService";
 import Loader from "../common/Loader";
+import { formatCurrencyLKR } from "../../utils/formatters";
 
 // Fix Leaflet marker icons for React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -23,11 +24,7 @@ const formatDate = (value) => {
   return parsed.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 };
 
-const formatCurrency = (value) => {
-  const amount = Number(value);
-  if (Number.isNaN(amount)) return "N/A";
-  return `$${amount.toLocaleString()}`;
-};
+const formatCurrency = (value) => formatCurrencyLKR(value);
 
 const normalizeText = (value) => (value ?? "").toString().trim();
 

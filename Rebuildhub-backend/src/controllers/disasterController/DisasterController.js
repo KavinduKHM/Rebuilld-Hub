@@ -111,11 +111,27 @@ exports.getSingleDisaster = async (req, res) => {
 
 exports.updateDisaster = async (req, res) => {
   try {
-    const disaster = await Disaster.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const disaster = await Disaster.findById(req.params.id);
+
+    if (!disaster) {
+      return res.status(404).json({ message: "Disaster not found" });
+    }
+
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const imageUrl = await uploadToCloudinary(file.buffer);
+        imageUrls.push(imageUrl);
+      }
+    }
+
+    const updateData = { ...req.body };
+    if (imageUrls.length > 0) {
+      updateData.images = [...(disaster.images || []), ...imageUrls];
+    }
+
+    Object.assign(disaster, updateData);
+    await disaster.save();
 
     res.status(200).json(disaster);
   } catch (error) {

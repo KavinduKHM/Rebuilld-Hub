@@ -13,7 +13,15 @@ export const createDisaster = (formData) =>
   });
 
 // Update disaster
-export const updateDisaster = (id, data) => API.put(`/api/disasters/${id}`, data);
+export const updateDisaster = (id, data) => {
+  if (data instanceof FormData) {
+    return API.put(`/api/disasters/${id}`, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  }
+
+  return API.put(`/api/disasters/${id}`, data);
+};
 
 // Verify disaster (admin only)
 export const verifyDisaster = (id, status) =>
