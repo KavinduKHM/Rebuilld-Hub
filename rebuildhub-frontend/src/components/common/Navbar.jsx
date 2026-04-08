@@ -17,7 +17,7 @@ const Navbar = () => {
           <a href="/#contact" className="nav-link">Contact</a>
         </div>
         <div className="nav-actions">
-          <Link to="/dashboard" className="btn-secondary nav-signin">Sign In</Link>
+          <Link to="/admin/login" className="btn-secondary nav-signin">Sign In</Link>
         </div>
       </nav>
     </header>

@@ -4,7 +4,7 @@ import API from "./api";
 export const getReportsByDisaster = (disasterId) =>
   API.get(`/api/reports/disaster/${disasterId}`);
 
-// Verify a damage report (Authority only)
+// Verify a damage report (admin only)
 export const verifyReport = (reportId, status) =>
   API.patch(`/api/reports/verify/${reportId}`, { status });
 

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { getDisasters } from "../../services/disasterService";
-import API from "../../services/api";
+import { submitDamageReport } from "../../services/damageService";
 
 const DamageReportForm = () => {
+  const location = useLocation();
   const [disasters, setDisasters] = useState([]);
   const [form, setForm] = useState({
     disasterId: "",
@@ -19,6 +21,22 @@ const DamageReportForm = () => {
   useEffect(() => {
     getDisasters().then(res => setDisasters(res.data));
   }, []);
+
+  useEffect(() => {
+    const prefill = location.state?.prefillReport;
+    if (!prefill) return;
+
+    setForm((prev) => ({
+      ...prev,
+      disasterId: prefill.disasterId || prev.disasterId,
+      damageDescription: prefill.damageDescription || prev.damageDescription,
+      location: {
+        latitude: prefill.location?.latitude?.toString() || prev.location.latitude,
+        longitude: prefill.location?.longitude?.toString() || prev.location.longitude,
+        address: prefill.location?.address || prev.location.address,
+      },
+    }));
+  }, [location.state]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,7 +66,7 @@ const DamageReportForm = () => {
     images.forEach(img => data.append("images", img));
 
     try {
-      await API.post("/reports", data, { headers: { "Content-Type": "multipart/form-data" } });
+      await submitDamageReport(data);
       alert("Damage report submitted!");
       window.location.href = "/disasters";
     } catch (err) {
@@ -71,20 +89,20 @@ const DamageReportForm = () => {
           </div>
         </div>
         <form onSubmit={handleSubmit} className="page-card detail-stack">
-          <select name="disasterId" onChange={handleChange} required>
+          <select name="disasterId" value={form.disasterId} onChange={handleChange} required>
             <option value="">Select Disaster</option>
             {disasters.map(d => <option key={d._id} value={d._id}>{d.title}</option>)}
           </select>
-          <input name="reporterName" placeholder="Your Name" onChange={handleChange} required />
-          <input name="contactNumber" placeholder="Contact Number" onChange={handleChange} required />
-          <select name="damageType" onChange={handleChange}>
+          <input name="reporterName" placeholder="Your Name" value={form.reporterName} onChange={handleChange} required />
+          <input name="contactNumber" placeholder="Contact Number" value={form.contactNumber} onChange={handleChange} required />
+          <select name="damageType" value={form.damageType} onChange={handleChange}>
             <option>Infrastructure</option><option>Housing</option><option>Medical</option><option>Agriculture</option><option>Other</option>
           </select>
-          <textarea name="damageDescription" placeholder="Describe damage" onChange={handleChange} required />
-          <input name="estimatedLoss" placeholder="Estimated Loss ($)" type="number" onChange={handleChange} />
-          <input name="location.latitude" placeholder="Latitude" type="number" step="any" />
-          <input name="location.longitude" placeholder="Longitude" type="number" step="any" />
-          <input name="location.address" placeholder="Address" />
+          <textarea name="damageDescription" placeholder="Describe damage" value={form.damageDescription} onChange={handleChange} required />
+          <input name="estimatedLoss" placeholder="Estimated Loss ($)" type="number" value={form.estimatedLoss} onChange={handleChange} />
+          <input name="location.latitude" placeholder="Latitude" type="number" step="any" value={form.location.latitude} onChange={handleChange} />
+          <input name="location.longitude" placeholder="Longitude" type="number" step="any" value={form.location.longitude} onChange={handleChange} />
+          <input name="location.address" placeholder="Address" value={form.location.address} onChange={handleChange} />
           <input type="file" multiple accept="image/*" onChange={handleFileChange} />
           <button type="submit" className="btn-primary" disabled={loading}>{loading ? "Submitting..." : "Submit Report"}</button>
         </form>
