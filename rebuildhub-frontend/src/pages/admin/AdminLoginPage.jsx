@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../services/authService";
 import { getAuthSession, setAuthSession } from "../../services/authSession";
+import "../../assets/styles/global.css";
 
 const allowedRoles = ["admin", "inventory_manager", "volunteer"];
 
@@ -17,6 +18,11 @@ const AdminLoginPage = () => {
 
     if (token && role === "admin") {
       navigate("/dashboard", { replace: true });
+      return;
+    }
+
+    if (token && role === "volunteer") {
+      navigate("/volunteer/dashboard", { replace: true });
     }
   }, [navigate]);
 
@@ -44,6 +50,11 @@ const AdminLoginPage = () => {
 
       if (user.role === "admin") {
         navigate("/dashboard", { replace: true });
+        return;
+      }
+
+      if (user.role === "volunteer") {
+        navigate("/volunteer/dashboard", { replace: true });
         return;
       }
 

@@ -203,11 +203,13 @@ const AdminDashboardPage = () => {
           <span className="tac-sidebar-subtitle">Sector 7G - Active</span>
         </div>
 
-        <nav className="tac-nav">
-          <a href="#disasters" className="tac-nav__item tac-nav__item--active">Disasters</a>
-          <a href="#volunteers" className="tac-nav__item">Volunteers</a>
-          <a href="#resources" className="tac-nav__item">Resources</a>
-          <a href="#aid-requests" className="tac-nav__item">Aid Requests</a>
+        <div className="admin-status-pill">System Status: Active</div>
+
+        <nav className="admin-nav">
+          <a href="#disasters" className="admin-nav-link admin-nav-link--active">Disasters</a>
+          <Link to="/admin/volunteers" className="admin-nav-link">Volunteers</Link>
+          <a href="#resources" className="admin-nav-link">Resources</a>
+          <a href="#aid-requests" className="admin-nav-link">Aid Requests</a>
         </nav>
 
         <div className="tac-sidebar-footer">

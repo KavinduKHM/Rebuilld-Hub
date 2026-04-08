@@ -7,6 +7,18 @@ const registerVolunteerValidation = [
     .isLength({ min: 2 })
     .withMessage("Name must be at least 2 characters"),
 
+  body("email")
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Please enter a valid email address"),
+
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters"),
+
   body("phone")
     .notEmpty()
     .withMessage("Phone is required")
