@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const disasterController = require("../../controllers/disasterController/DisasterController");
+const authMiddleware = require("../../middlewares/authMiddleware");
+const { adminOnly } = authMiddleware;
 const { validate } = require("../../middlewares/ValidationMiddleware");
 const {
   createDisasterValidation,
@@ -15,6 +17,9 @@ router.get("/", disasterController.getAllDisasters);
 
 // Get single disaster
 router.get("/:id", disasterController.getSingleDisaster);
+
+// Verify disaster (admin only)
+router.patch("/verify/:id", authMiddleware, adminOnly, disasterController.verifyDisaster);
 
 // Update disaster
 router.put("/:id", disasterController.updateDisaster);

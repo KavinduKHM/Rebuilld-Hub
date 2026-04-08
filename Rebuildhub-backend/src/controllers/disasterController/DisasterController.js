@@ -35,6 +35,7 @@ exports.createDisaster = async (req, res) => {
     const disaster = await Disaster.create({
       ...req.body,
       images: imageUrls,
+      verificationStatus: "Pending",
       createdBy: req.user?.id || null,
     });
 
@@ -127,6 +128,39 @@ exports.deleteDisaster = async (req, res) => {
     res.status(200).json({ message: "Disaster deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+exports.verifyDisaster = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowedStatuses = ["Verified", "Rejected", "Pending"];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid verification status" });
+    }
+
+    const disaster = await Disaster.findById(id);
+
+    if (!disaster) {
+      return res.status(404).json({ message: "Disaster not found" });
+    }
+
+    disaster.verificationStatus = status;
+    if (status === "Verified") {
+      disaster.status = "Under Assessment";
+    }
+
+    await disaster.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Disaster verification status updated",
+      data: disaster,
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 };
 
