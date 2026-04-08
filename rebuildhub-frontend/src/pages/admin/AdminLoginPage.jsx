@@ -4,7 +4,7 @@ import { login } from "../../services/authService";
 import { getAuthSession, setAuthSession } from "../../services/authSession";
 import "../../assets/styles/global.css";
 
-const allowedRoles = ["admin", "inventory_manager", "volunteer"];
+const allowedRoles = ["admin", "inventory_manager", "volunteer", "seeker"];
 
 const AdminLoginPage = () => {
   const navigate = useNavigate();
@@ -23,6 +23,11 @@ const AdminLoginPage = () => {
 
     if (token && role === "volunteer") {
       navigate("/volunteer/dashboard", { replace: true });
+      return;
+    }
+
+    if (token && role === "seeker") {
+      navigate("/", { replace: true });
     }
   }, [navigate]);
 
@@ -42,7 +47,7 @@ const AdminLoginPage = () => {
       const user = response.data?.user;
 
       if (!user || !allowedRoles.includes(user.role)) {
-        setError("This account does not have staff access.");
+        setError("This account is not allowed to access this portal.");
         return;
       }
 
@@ -55,6 +60,11 @@ const AdminLoginPage = () => {
 
       if (user.role === "volunteer") {
         navigate("/volunteer/dashboard", { replace: true });
+        return;
+      }
+
+      if (user.role === "seeker") {
+        navigate("/", { replace: true });
         return;
       }
 
@@ -74,8 +84,8 @@ const AdminLoginPage = () => {
         <span className="admin-login-eyebrow">Classified Administration</span>
         <h1>Sentinel Command</h1>
         <p>
-          Secure access for administrators, inventory managers, and volunteers.
-          Public users continue using the system without signing in.
+          Secure access for administrators, inventory managers, volunteers, and seekers.
+          Seekers sign in here to submit aid requests.
         </p>
         <div className="admin-login-points">
           <div>
@@ -89,6 +99,10 @@ const AdminLoginPage = () => {
           <div>
             <strong>Volunteer</strong>
             <span>Portal reserved, not integrated yet</span>
+          </div>
+          <div>
+            <strong>Seeker</strong>
+            <span>Submit aid requests for verified disasters</span>
           </div>
         </div>
       </div>

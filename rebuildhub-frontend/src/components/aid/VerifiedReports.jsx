@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getDisasters } from "../../services/disasterService";
 import Loader from "../common/Loader";
-import { MdOutlineLocationOn, MdVerified } from "react-icons/md";
-import { RiVerifiedBadgeFill } from "react-icons/ri";
 
 const cleanText = (value) => (value ?? "").toString().trim();
 
@@ -73,7 +71,10 @@ const VerifiedReports = () => {
 				<div className="page-header" style={{ marginBottom: "1.8rem" }}>
 					<div>
 						<span className="section-label" style={{ color: "#192bc2", fontSize: "0.8rem"}}>Aid Registry</span>
-						<h2 className="page-title" fontSize="1.25rem"><RiVerifiedBadgeFill />  Verified Disaster Evidence & Requests Submit</h2>
+						<h2 className="page-title" fontSize="1.25rem">
+							<span className="material-symbols-outlined" style={{ marginRight: "0.35rem" }}>verified</span>
+							Verified Disaster Evidence & Requests Submit
+						</h2>
 						<p className="page-subtitle" style={{ color: "#5e78aa", maxWidth: "1480px" }}>
 							Choose a verified disaster and continue to the aid request form. Our ground teams have confirmed the following events as eligible for expedited relief.
 						</p>
@@ -110,7 +111,8 @@ const VerifiedReports = () => {
 												letterSpacing: "0.07em",
 											}}
 										>
-											<MdVerified /> Verified
+											<span className="material-symbols-outlined" style={{ fontSize: "0.9rem" }}>verified</span>
+											Verified
 										</span>
 										<span
 											style={{
@@ -140,7 +142,7 @@ const VerifiedReports = () => {
 											fontSize: "1.1rem",
 										}}
 									>
-										<MdVerified />
+											<span className="material-symbols-outlined">verified</span>
 									</div>
 								</div>
 
@@ -180,7 +182,7 @@ const VerifiedReports = () => {
 
 								<p>
 									<span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", color: "#5e78aa", fontSize: "0.9rem" }}>
-										<MdOutlineLocationOn />
+										<span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>location_on</span>
 										{cleanText(disaster.location?.name || disaster.location?.address) || "Location unavailable"}
 									</span>
 								</p>
@@ -239,7 +241,7 @@ const VerifiedReports = () => {
 							color: "#1b56cb",
 						}}
 					>
-						<MdVerified />
+						<span className="material-symbols-outlined">verified</span>
 					</div>
 					<h3 style={{ marginBottom: "0.4rem" }}>Can&apos;t find a disaster?</h3>
 					<p style={{ color: "#6880af", maxWidth: "420px", margin: "0 auto 1rem", lineHeight: 1.5 }}>
