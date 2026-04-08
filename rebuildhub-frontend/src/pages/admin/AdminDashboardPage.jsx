@@ -280,7 +280,7 @@ const AdminDashboardPage = () => {
           <a href="#disasters" className="admin-nav-link admin-nav-link--active">Disasters</a>
           <Link to="/admin/volunteers" className="admin-nav-link">Volunteers</Link>
           <a href="#resources" className="admin-nav-link">Resources</a>
-          <a href="#aid-requests" className="admin-nav-link">Aid Requests</a>
+          <Link to="/admin/aid-requests" className="admin-nav-link">Aid Requests</Link>
         </nav>
 
         <div className="tac-sidebar-footer">
@@ -556,34 +556,14 @@ const AdminDashboardPage = () => {
               </div>
             </div>
           </div>
-
-          <aside className="tac-right-column">
-            
-
-            <article className="tac-panel tac-panel--alerts" id="logistics">
-              <div className="tac-panel__head">
-                <h3>Global Alerts</h3>
-                <span className="tac-live-dot">Live</span>
-              </div>
-
-              {recentAlerts.length === 0 ? (
-                <p className="empty-state">No alert records available.</p>
-              ) : (
-                <div className="tac-alert-list">
-                  {recentAlerts.map((item) => (
-                    <div key={item._id} className="tac-alert-item">
-                      <span className="tac-alert-line" />
-                      <div>
-                        <small>{formatShortDate(item.updatedAt || item.createdAt)}</small>
-                        <strong>{normalizeText(item.title) || "Untitled disaster"}</strong>
-                        <p>{normalizeText(item.location?.name || item.location?.address || "Location pending")}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </article>
-          </aside>
+          <div className="admin-panel page-card" id="aid-requests">
+            <span className="section-label">Aid Requests</span>
+            <h3>Live Requests</h3>
+            <p>Open and review requests submitted by users via the aid request form.</p>
+            <div style={{ marginTop: "0.8rem" }}>
+              <Link to="/admin/aid-requests" className="btn-secondary">Open Aid Requests</Link>
+            </div>
+          </div>
         </section>
       </main>
     </div>

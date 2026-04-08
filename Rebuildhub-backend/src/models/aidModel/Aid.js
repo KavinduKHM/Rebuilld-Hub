@@ -21,17 +21,29 @@ const aidSchema = new mongoose.Schema(
     },
 
     location: {
-        lat: Number,
-        lng: Number
+        country: {
+            type: String,
+            required: true,
+            trim: true
+        },
+        province: {
+            type: String,
+            required: true,
+            trim: true
+        },
+        district: {
+            type: String,
+            required: true,
+            trim: true
+        },
+        city: {
+            type: String,
+            required: true,
+            trim: true
+        }
     },
 
     // Status workflow
-    inventoryStatus: {
-        type: String,
-        enum: ["PENDING", "APPROVED", "REJECTED", "DISPATCHED"],
-        default: "PENDING"
-    },
-
     adminStatus: {
         type: String,
         enum: ["PENDING", "APPROVED", "REJECTED"],
