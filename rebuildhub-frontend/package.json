@@ -14,9 +14,11 @@
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.14.0",
     "react-scripts": "5.0.1",
+    "vite": "^8.0.6",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "dev": "vite",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -39,5 +41,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.1"
   }
 }
