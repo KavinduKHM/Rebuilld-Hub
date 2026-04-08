@@ -21,8 +21,8 @@ router.get("/:id", disasterController.getSingleDisaster);
 // Verify disaster (admin only)
 router.patch("/verify/:id", authMiddleware, adminOnly, disasterController.verifyDisaster);
 
-// Update disaster
-router.put("/:id", disasterController.updateDisaster);
+// Update disaster (with optional image upload)
+router.put("/:id", upload.array("images", 5), disasterController.updateDisaster);
 
 // Delete disaster
 router.delete("/:id", disasterController.deleteDisaster);

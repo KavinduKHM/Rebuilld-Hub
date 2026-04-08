@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { formatCurrencyLKR } from "../../utils/formatters";
 
 const DamageReportList = ({ reports, disasterId }) => {
   if (!reports || reports.length === 0) {
@@ -15,7 +16,7 @@ const DamageReportList = ({ reports, disasterId }) => {
           <p><strong>Contact:</strong> {report.contactNumber}</p>
           <p><strong>Damage Type:</strong> {report.damageType}</p>
           <p><strong>Description:</strong> {report.damageDescription}</p>
-          <p><strong>Estimated Loss:</strong> ${report.estimatedLoss?.toLocaleString()}</p>
+          <p><strong>Estimated Loss:</strong> {formatCurrencyLKR(report.estimatedLoss)}</p>
           <p><strong>Status:</strong> 
             <span className={`status-chip ${(report.verificationStatus === "Verified" || report.verificationStatus === "Approved") ? "status-chip--verified" : report.verificationStatus === "Rejected" ? "status-chip--rejected" : "status-chip--pending"}`}>
               {report.verificationStatus}
