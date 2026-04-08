@@ -3,40 +3,25 @@ const inventoryService = require("./inventoryService");
 const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Create Donation
+// Create Donation - Supports both STOCK and MONEY
 exports.createDonation = async (data) => {
   // STOCK DONATION
   if (data.type === "STOCK") {
     await inventoryService.updateStockQuantity(data.inventoryId, data.quantity);
-    return await Donation.create(data);
+    const donation = await Donation.create(data);
+    return { donation };
   }
 
-  // MONEY DONATION
+  // MONEY DONATION - This is for direct API calls
   if (data.type === "MONEY") {
-    if (!data.amount) throw new Error("Amount is required");
-
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: data.amount * 100, // cents
-      currency: "usd",
-      payment_method_types: ["card"],
-    });
-
-    await inventoryService.updateMoneyAmount(data.inventoryId, data.amount);
-
-    data.paymentStatus = "PENDING";
-
     const donation = await Donation.create(data);
-
-    return {
-      donation,
-      clientSecret: paymentIntent.client_secret,
-    };
+    return { donation };
   }
 };
 
 // Get all donations
 exports.getAllDonations = async () => {
-  return await Donation.find();
+  return await Donation.find().sort({ createdAt: -1 });
 };
 
 // Get donation by ID
@@ -46,9 +31,53 @@ exports.getDonationById = async (id) => {
   return donation;
 };
 
+// Get donation by Stripe session ID
+exports.getDonationBySessionId = async (sessionId) => {
+  const donation = await Donation.findOne({ stripeSessionId: sessionId });
+  if (!donation) throw new Error("Donation not found");
+  return donation;
+};
+
+// Update donation status
+exports.updateDonationStatus = async (id, data) => {
+  const donation = await Donation.findByIdAndUpdate(id, data, { new: true });
+  if (!donation) throw new Error("Donation not found");
+  return donation;
+};
+
 // Delete donation by ID
 exports.deleteDonation = async (id) => {
   const donation = await Donation.findByIdAndDelete(id);
   if (!donation) throw new Error("Donation not found");
   return donation;
+};
+
+// Get donations by donor NIC
+exports.getDonationsByDonor = async (donorNIC) => {
+  return await Donation.find({ donorNIC }).sort({ createdAt: -1 });
+};
+
+// Get donation statistics
+exports.getDonationStats = async () => {
+  const totalDonations = await Donation.countDocuments();
+  const successfulDonations = await Donation.countDocuments({ paymentStatus: 'SUCCESS' });
+  const pendingDonations = await Donation.countDocuments({ paymentStatus: 'PENDING' });
+  
+  const totalAmount = await Donation.aggregate([
+    { $match: { paymentStatus: 'SUCCESS', type: 'MONEY' } },
+    { $group: { _id: null, total: { $sum: '$amount' } } }
+  ]);
+  
+  const totalStockItems = await Donation.aggregate([
+    { $match: { paymentStatus: 'SUCCESS', type: 'STOCK' } },
+    { $group: { _id: null, total: { $sum: '$quantity' } } }
+  ]);
+  
+  return {
+    totalDonations,
+    successfulDonations,
+    pendingDonations,
+    totalMoneyAmount: totalAmount[0]?.total || 0,
+    totalStockQuantity: totalStockItems[0]?.total || 0,
+  };
 };
