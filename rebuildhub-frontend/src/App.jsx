@@ -17,10 +17,16 @@ import WeatherPage from "./pages/weather/WeatherPage.jsx";
 import AdminLoginPage from "./pages/admin/AdminLoginPage.jsx";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage.jsx";
 import InventoryManagerDashboardPage from "./pages/admin/InventoryManagerDashboardPage.jsx";
+import ResourceManagementPage from "./pages/resource/ResourceManagementPage.jsx";
+import ResourcePage from "./pages/resource/ResourcePage.jsx";
+import DonationSuccess from "./pages/resource/DonationSuccess.jsx";
+import DonationForm from "./components/resource/DonationForm.jsx";
 import VolunteerDashboardPage from "./pages/volunteer/VolunteerDashboard.jsx";
 import VolunteerPage from "./pages/volunteer/VolunteerPage.jsx";
 import AdminVolunteerManagement from "./pages/volunteer/AdminVolunteerManagement.jsx";
 import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import { ResourceProvider } from "./context/ResourceContext.jsx";
 
 const AppShell = () => {
   return (
@@ -62,6 +68,14 @@ const AppShell = () => {
           }
         />
         <Route
+          path="/admin/resources"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <ResourceManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/inventory/dashboard"
           element={
             <ProtectedRoute allowedRoles={["inventory_manager"]}>
@@ -88,6 +102,38 @@ const AppShell = () => {
         />
         <Route path="/disasters" element={<DisasterPage />} />
         <Route path="/disasters/new" element={<DisasterForm />} />
+        <Route
+          path="/resources"
+          element={
+            <ProtectedRoute>
+              <ResourcePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/donate"
+          element={
+            <ProtectedRoute>
+              <DonationForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/donate/:itemId"
+          element={
+            <ProtectedRoute>
+              <DonationForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/donation-success"
+          element={
+            <ProtectedRoute>
+              <DonationSuccess />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/aid/verified-reports" element={<VerifiedReports />} />
         <Route path="/aid/request" element={<AidRequestForm />} />
         <Route path="/weather" element={<WeatherPage />} />
@@ -104,7 +150,11 @@ const AppShell = () => {
 function App() {
   return (
     <BrowserRouter>
-      <AppShell />
+      <AuthProvider>
+        <ResourceProvider>
+          <AppShell />
+        </ResourceProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
