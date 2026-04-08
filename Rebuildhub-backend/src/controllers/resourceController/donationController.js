@@ -56,7 +56,7 @@ exports.createCheckoutSession = async (req, res) => {
     const savedDonation = await donation.save();
     console.log("✅ Donation saved with ID:", savedDonation._id);
     
-    // Create Stripe Checkout Session - redirect to success page
+    // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -73,7 +73,7 @@ exports.createCheckoutSession = async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/donation-success?session_id={CHECKOUT_SESSION_ID}&donation_id=${savedDonation._id}`,
+      success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/resources?payment=success&session_id={CHECKOUT_SESSION_ID}&donation_id=${savedDonation._id}`,
       cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/resources?payment=canceled`,
       customer_email: email || undefined,
       metadata: {
@@ -83,6 +83,9 @@ exports.createCheckoutSession = async (req, res) => {
         fundId: inventoryId,
         fundName: name || 'General Relief Fund',
         amount: amount.toString(),
+        isInternational: isInternational ? 'true' : 'false',
+        originalCurrency: originalCurrency || 'LKR',
+        originalAmount: (originalAmount || amount).toString(),
       },
     });
     
@@ -168,7 +171,9 @@ exports.verifyPayment = async (req, res) => {
           id: donation._id,
           amount: donation.amount,
           donorName: donation.donorName,
-          name: donation.name
+          name: donation.name,
+          originalCurrency: donation.originalCurrency || 'LKR',
+          originalAmount: donation.originalAmount || donation.amount
         }
       });
     } else {
@@ -187,6 +192,16 @@ exports.verifyPayment = async (req, res) => {
 exports.getDonationById = async (req, res) => {
   try {
     const donation = await donationService.getDonationById(req.params.id);
+    res.status(200).json(donation);
+  } catch (err) {
+    res.status(404).json({ message: err.message });
+  }
+};
+
+// Get donation by Stripe session ID
+exports.getDonationBySessionId = async (req, res) => {
+  try {
+    const donation = await donationService.getDonationBySessionId(req.params.sessionId);
     res.status(200).json(donation);
   } catch (err) {
     res.status(404).json({ message: err.message });

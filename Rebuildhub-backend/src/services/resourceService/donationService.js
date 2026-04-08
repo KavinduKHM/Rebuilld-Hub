@@ -1,9 +1,7 @@
 const Donation = require("../../models/resourceModel/donationModel");
 const inventoryService = require("./inventoryService");
-const Stripe = require("stripe");
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Create Donation - Supports both STOCK and MONEY
+// Create Donation
 exports.createDonation = async (data) => {
   // STOCK DONATION
   if (data.type === "STOCK") {
@@ -12,7 +10,7 @@ exports.createDonation = async (data) => {
     return { donation };
   }
 
-  // MONEY DONATION - This is for direct API calls
+  // MONEY DONATION
   if (data.type === "MONEY") {
     const donation = await Donation.create(data);
     return { donation };
@@ -45,14 +43,14 @@ exports.updateDonationStatus = async (id, data) => {
   return donation;
 };
 
-// Delete donation by ID
+// Delete donation
 exports.deleteDonation = async (id) => {
   const donation = await Donation.findByIdAndDelete(id);
   if (!donation) throw new Error("Donation not found");
   return donation;
 };
 
-// Get donations by donor NIC
+// Get donations by donor
 exports.getDonationsByDonor = async (donorNIC) => {
   return await Donation.find({ donorNIC }).sort({ createdAt: -1 });
 };
