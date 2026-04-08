@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getReportById, verifyReport } from "../../services/damageService";
 import Loader from "../common/Loader";
@@ -10,11 +10,7 @@ const DamageReportDetails = () => {
   const [error, setError] = useState("");
   const role = localStorage.getItem("role");
 
-  useEffect(() => {
-    fetchReport();
-  }, [id]);
-
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
     try {
       const res = await getReportById(id);
       setReport(res.data.data || res.data);
@@ -23,7 +19,11 @@ const DamageReportDetails = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchReport();
+  }, [fetchReport]);
 
   const handleVerify = async (status) => {
     try {
@@ -88,7 +88,7 @@ const DamageReportDetails = () => {
             </div>
           )}
 
-          {role === "authority" && report.verificationStatus === "Pending" && (
+          {role === "admin" && report.verificationStatus === "Pending" && (
             <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
               <button onClick={() => handleVerify("Verified")} className="btn-primary">Verify Report</button>
               <button onClick={() => handleVerify("Rejected")} className="btn-danger">Reject Report</button>

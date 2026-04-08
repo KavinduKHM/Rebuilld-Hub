@@ -15,5 +15,9 @@ export const createDisaster = (formData) =>
 // Update disaster
 export const updateDisaster = (id, data) => API.put(`/api/disasters/${id}`, data);
 
+// Verify disaster (admin only)
+export const verifyDisaster = (id, status) =>
+  API.patch(`/api/disasters/verify/${id}`, { status });
+
 // Delete disaster
 export const deleteDisaster = (id) => API.delete(`/api/disasters/${id}`);

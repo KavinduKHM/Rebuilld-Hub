@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useCallback, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getDisasterById } from "../../services/disasterService";
 import { getReportsByDisaster, verifyReport } from "../../services/damageService";
+import { verifyDisaster } from "../../services/disasterService";
 import Loader from "../common/Loader";
 
 // Fix Leaflet marker icons for React
@@ -23,11 +24,7 @@ const DisasterDetails = () => {
   const [error, setError] = useState("");
   const role = localStorage.getItem("role");
 
-  useEffect(() => {
-    fetchData();
-  }, [id]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [disRes, repRes] = await Promise.all([
         getDisasterById(id),
@@ -40,7 +37,11 @@ const DisasterDetails = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleVerify = async (reportId, status) => {
     try {
@@ -49,6 +50,16 @@ const DisasterDetails = () => {
       fetchData();
     } catch (err) {
       alert("Verification failed");
+    }
+  };
+
+  const handleVerifyDisaster = async (status) => {
+    try {
+      await verifyDisaster(id, status);
+      alert(`Disaster marked as ${status}`);
+      fetchData();
+    } catch (err) {
+      alert("Disaster verification failed");
     }
   };
 
@@ -71,7 +82,27 @@ const DisasterDetails = () => {
         <div className="page-card detail-stack">
           <p><strong>Type:</strong> {disaster.type}</p>
           <p><strong>Severity:</strong> {disaster.severityLevel}</p>
+          <p>
+            <strong>Verification Status:</strong>{" "}
+            <span
+              className={`status-chip ${
+                (disaster.verificationStatus || "Pending") === "Verified"
+                  ? "status-chip--verified"
+                  : (disaster.verificationStatus || "Pending") === "Rejected"
+                    ? "status-chip--rejected"
+                    : "status-chip--pending"
+              }`}
+            >
+              {disaster.verificationStatus || "Pending"}
+            </span>
+          </p>
           <p><strong>Description:</strong> {disaster.description}</p>
+          {role === "admin" && (disaster.verificationStatus || "Pending") === "Pending" && (
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              <button onClick={() => handleVerifyDisaster("Verified")} className="btn-primary">Verify Disaster</button>
+              <button onClick={() => handleVerifyDisaster("Rejected")} className="btn-danger">Reject Disaster</button>
+            </div>
+          )}
           {disaster.images?.length > 0 && (
             <div>
               <h4>Evidence Images:</h4>
@@ -97,7 +128,7 @@ const DisasterDetails = () => {
                   <a href={report.googleMap.viewLocation} target="_blank" rel="noopener noreferrer" className="btn-secondary">View on Google Maps</a>
                 </div>
               )}
-              {role === "authority" && report.verificationStatus === "Pending" && (
+              {role === "admin" && report.verificationStatus === "Pending" && (
                 <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
                   <button onClick={() => handleVerify(report._id, "Verified")} className="btn-primary">Verify</button>
                   <button onClick={() => handleVerify(report._id, "Rejected")} className="btn-danger">Reject</button>

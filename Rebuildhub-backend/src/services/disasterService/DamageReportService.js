@@ -14,6 +14,11 @@ const getReportsByDisaster = async (disasterId) => {
 };
 
 const verifyReport = async (reportId, status) => {
+  const allowedStatuses = ["Verified", "Rejected", "Pending"];
+  if (!allowedStatuses.includes(status)) {
+    throw new Error("Invalid verification status");
+  }
+
   const report = await DamageReport.findById(reportId);
 
   if (!report) {
