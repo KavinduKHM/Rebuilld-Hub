@@ -33,7 +33,7 @@ const disasterSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["Active", "Under Assessment", "Resolved"],
-      default: "Active",
+      default: "Under Assessment",
     },
     images: [
       {

@@ -15,6 +15,9 @@ router.post("/", upload.array("images", 5), controller.createReport);
 // Get Reports by Disaster
 router.get("/disaster/:disasterId", controller.getReportsByDisaster);
 
+// Get single report by id
+router.get("/:id", controller.getReportById);
+
 // Verify Report (Authority Workflow)
 router.patch("/verify/:id", authMiddleware, adminOnly, controller.verifyReport);
 

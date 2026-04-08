@@ -17,7 +17,7 @@ const DamageReportList = ({ reports, disasterId }) => {
           <p><strong>Description:</strong> {report.damageDescription}</p>
           <p><strong>Estimated Loss:</strong> ${report.estimatedLoss?.toLocaleString()}</p>
           <p><strong>Status:</strong> 
-            <span className={`status-chip ${report.verificationStatus === "Verified" ? "status-chip--verified" : report.verificationStatus === "Rejected" ? "status-chip--rejected" : "status-chip--pending"}`}>
+            <span className={`status-chip ${(report.verificationStatus === "Verified" || report.verificationStatus === "Approved") ? "status-chip--verified" : report.verificationStatus === "Rejected" ? "status-chip--rejected" : "status-chip--pending"}`}>
               {report.verificationStatus}
             </span>
           </p>

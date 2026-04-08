@@ -19,7 +19,7 @@ const eventRoutes = require("./routes/eventRoutes/eventRoutes.js");
 // app.use(cors());
 app.use(cors({
     origin: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
