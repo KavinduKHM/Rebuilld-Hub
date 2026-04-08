@@ -274,7 +274,7 @@ const AdminDashboardPage = () => {
           <span className="tac-sidebar-subtitle">Sector 7G - Active</span>
         </div>
 
-        <div className="admin-status-pill">System Status: Active</div>
+        
 
         <nav className="admin-nav">
           <a href="#disasters" className="admin-nav-link admin-nav-link--active">Disasters</a>

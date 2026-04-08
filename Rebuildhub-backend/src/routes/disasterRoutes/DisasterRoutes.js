@@ -21,6 +21,9 @@ router.get("/:id", disasterController.getSingleDisaster);
 // Verify disaster (admin only)
 router.patch("/verify/:id", authMiddleware, adminOnly, disasterController.verifyDisaster);
 
+// Assign volunteer to a disaster (approved volunteers only)
+router.post("/:id/assign-volunteer", disasterController.assignVolunteer);
+
 // Update disaster (with optional image upload)
 router.put("/:id", upload.array("images", 5), disasterController.updateDisaster);
 
