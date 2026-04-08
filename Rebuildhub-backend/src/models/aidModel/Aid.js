@@ -44,12 +44,6 @@ const aidSchema = new mongoose.Schema(
     },
 
     // Status workflow
-    inventoryStatus: {
-        type: String,
-        enum: ["PENDING", "APPROVED", "REJECTED", "DISPATCHED"],
-        default: "PENDING"
-    },
-
     adminStatus: {
         type: String,
         enum: ["PENDING", "APPROVED", "REJECTED"],

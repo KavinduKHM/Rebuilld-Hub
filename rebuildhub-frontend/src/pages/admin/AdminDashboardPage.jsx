@@ -89,7 +89,7 @@ const AdminDashboardPage = () => {
           <a href="#disasters" className="admin-nav-link admin-nav-link--active">Disasters</a>
           <a href="#volunteers" className="admin-nav-link">Volunteers</a>
           <a href="#resources" className="admin-nav-link">Resources</a>
-          <a href="#aid-requests" className="admin-nav-link">Aid Requests</a>
+          <Link to="/admin/aid-requests" className="admin-nav-link">Aid Requests</Link>
         </nav>
 
         <div className="admin-sidebar-footer">
@@ -186,8 +186,11 @@ const AdminDashboardPage = () => {
           </div>
           <div className="admin-panel page-card" id="aid-requests">
             <span className="section-label">Aid Requests</span>
-            <h3>Coming Soon</h3>
-            <p>Request approvals and fulfillment will be connected in a later iteration.</p>
+            <h3>Live Requests</h3>
+            <p>Open and review requests submitted by users via the aid request form.</p>
+            <div style={{ marginTop: "0.8rem" }}>
+              <Link to="/admin/aid-requests" className="btn-secondary">Open Aid Requests</Link>
+            </div>
           </div>
         </section>
       </main>

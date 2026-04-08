@@ -45,7 +45,7 @@ const Home = () => {
             </div>
             <div className="ops-actions">
               <Link to="/disasters" className="btn-secondary">View Disasters</Link>
-              <Link to="/disasters/new" className="btn-primary">Request Aid</Link>
+              <Link to="/aid/verified-reports" className="btn-primary">Request Aid</Link>
             </div>
           </div>
         </div>

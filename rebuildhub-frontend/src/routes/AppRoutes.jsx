@@ -9,6 +9,9 @@ import DisasterForm from "../components/disaster/DisasterForm.jsx";
 import DamageReportPage from "../pages/damage/DamageReportPage.jsx";
 import DamageDetailsPage from "../pages/damage/DamageDetailsPage.jsx";
 import AidRequestForm from "../components/aid/AidRequestForm.jsx";
+import AidApproval from "../components/aid/AidApproval.jsx";
+import AidList from "../components/aid/AidList.jsx";
+import VerifiedReports from "../components/aid/VerifiedReports.jsx";
 import WeatherPage from "../pages/weather/WeatherPage.jsx";
 import AdminLoginPage from "../pages/admin/AdminLoginPage.jsx";
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage.jsx";
@@ -40,6 +43,22 @@ const AppShell = () => {
           }
         />
         <Route
+          path="/admin/aid-requests"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AidApproval />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/aid-completed"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AidList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/inventory/dashboard"
           element={
             <ProtectedRoute allowedRoles={["inventory_manager"]}>
@@ -57,6 +76,7 @@ const AppShell = () => {
         />
         <Route path="/disasters" element={<DisasterPage />} />
         <Route path="/disasters/new" element={<DisasterForm />} />
+        <Route path="/aid/verified-reports" element={<VerifiedReports />} />
         <Route path="/aid/request" element={<AidRequestForm />} />
         <Route path="/weather" element={<WeatherPage />} />
         <Route path="/disasters/:id" element={<DisasterDetailsPage />} />

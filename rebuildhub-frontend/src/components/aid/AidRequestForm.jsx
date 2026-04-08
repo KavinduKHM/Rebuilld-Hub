@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { createAid } from "../../services/aidService";
 import { FaFingerprint } from "react-icons/fa";
 import { IoStorefrontOutline } from "react-icons/io5";
@@ -52,10 +53,22 @@ const locationOptions = {
 };
 
 const AidRequestForm = () => {
+	const locationState = useLocation();
 	const [formData, setFormData] = useState(initialFormState);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isSubmitted, setIsSubmitted] = useState(false);
 	const [error, setError] = useState("");
+
+	useEffect(() => {
+		const selectedDisasterId = locationState.state?.disasterId;
+		if (!selectedDisasterId) return;
+
+		setFormData((prev) => ({
+			...prev,
+			damageReportId: selectedDisasterId,
+		}));
+	}, [locationState.state]);
+
 	const countryOptions = Object.keys(locationOptions);
 	const provinceOptions = formData.location.country
 		? Object.keys(locationOptions[formData.location.country] || {})
@@ -171,13 +184,13 @@ const AidRequestForm = () => {
 						<div style={{ marginBottom: "1.2rem" }}>
 							<h3 style={{ marginBottom: "0.45rem", fontSize: "1.05rem" }}><FaFingerprint color="#2563EB"  style={{ marginRight: "0.45rem" }}/>     Request Identification</h3>
 							<label style={{ display: "block", fontSize: "0.69rem", letterSpacing: "0.07em", textTransform: "uppercase", color: "#5f79ac", marginBottom: "0.5rem" }}>
-								Damage Report ID
+								Disaster ID
 							</label>
 							<input
 								name="damageReportId"
 								value={formData.damageReportId}
 								onChange={handleChange}
-								placeholder="e.g., 67f4f1efc042e8c5b4dbfd31"
+								placeholder="Selected disaster ID"
 								required
 							/>
 						</div>
