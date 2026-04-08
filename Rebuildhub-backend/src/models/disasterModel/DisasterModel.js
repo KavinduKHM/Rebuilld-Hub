@@ -44,6 +44,12 @@ const disasterSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    assignedVolunteers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Volunteer",
+      },
+    ],
   },
   { timestamps: true }
 );

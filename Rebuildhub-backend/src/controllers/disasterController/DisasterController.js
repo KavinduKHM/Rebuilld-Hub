@@ -2,6 +2,7 @@ const Disaster = require("../../models/disasterModel/DisasterModel");
 const { uploadToCloudinary } = require("../../services/disasterService/cloudinaryService");
 const DamageReport = require("../../models/disasterModel/DamageReportModel");
 const mapService = require("../../services/disasterService/mapService");
+const Volunteer = require("../../models/volunteerModel/volunteerModel");
 
 
 const getSuggestedVolunteerCount = (severityLevel) => {
@@ -177,6 +178,66 @@ exports.verifyDisaster = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+};
+
+exports.assignVolunteer = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { volunteerId, volunteerEmail } = req.body;
+
+    if (!volunteerId && !volunteerEmail) {
+      return res.status(400).json({ message: "Volunteer ID or email is required" });
+    }
+
+    const disaster = await Disaster.findById(id);
+    if (!disaster) {
+      return res.status(404).json({ message: "Disaster not found" });
+    }
+
+    const volunteerQuery = [];
+    if (volunteerId) {
+      const stringId = volunteerId.toString();
+      if (stringId) {
+        volunteerQuery.push({ _id: stringId });
+      }
+
+      const numericId = Number(stringId);
+      if (Number.isFinite(numericId)) {
+        volunteerQuery.push({ volunteerId: numericId });
+      }
+    }
+    if (volunteerEmail) {
+      volunteerQuery.push({ email: volunteerEmail.toLowerCase() });
+    }
+
+    const volunteer = await Volunteer.findOne({ $or: volunteerQuery });
+
+    if (!volunteer) {
+      return res.status(404).json({ message: "Volunteer not found" });
+    }
+
+    if (volunteer.verificationStatus !== "VERIFIED") {
+      return res.status(403).json({ message: "Volunteer is not approved" });
+    }
+
+    const volunteerObjectId = volunteer._id.toString();
+    const alreadyAssigned = (disaster.assignedVolunteers || [])
+      .map((item) => item.toString())
+      .includes(volunteerObjectId);
+
+    if (!alreadyAssigned) {
+      disaster.assignedVolunteers = [...(disaster.assignedVolunteers || []), volunteer._id];
+      await disaster.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: alreadyAssigned ? "Volunteer already assigned" : "Volunteer assigned successfully",
+      data: disaster,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
   }
 };
 

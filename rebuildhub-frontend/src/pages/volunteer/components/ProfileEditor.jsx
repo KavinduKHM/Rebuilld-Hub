@@ -353,7 +353,7 @@ const ProfileEditor = ({ volunteer, onUpdate, onClose }) => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .profile-editor-modal {
           position: fixed;
           top: 0;
