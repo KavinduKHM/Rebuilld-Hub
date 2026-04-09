@@ -57,6 +57,7 @@ exports.createCheckoutSession = async (req, res) => {
     console.log("✅ Donation saved with ID:", savedDonation._id);
     
     // Create Stripe Checkout Session
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -73,8 +74,8 @@ exports.createCheckoutSession = async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/resources?payment=success&session_id={CHECKOUT_SESSION_ID}&donation_id=${savedDonation._id}`,
-      cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/resources?payment=canceled`,
+      success_url: `${frontendUrl}/resources?payment=success&session_id={CHECKOUT_SESSION_ID}&donation_id=${savedDonation._id}`,
+      cancel_url: `${frontendUrl}/resources?payment=canceled`,
       customer_email: email || undefined,
       metadata: {
         donationId: savedDonation._id.toString(),

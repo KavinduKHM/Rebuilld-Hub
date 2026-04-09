@@ -1,5 +1,9 @@
 {
   "dependencies": {
-    "express": "^4.22.1"
+    "express": "^4.22.1",
+    "leaflet": "^1.9.4",
+    "react-icons": "^5.6.0",
+    "react-leaflet": "^5.0.0",
+    "recharts": "^3.8.1"
   }
 }
