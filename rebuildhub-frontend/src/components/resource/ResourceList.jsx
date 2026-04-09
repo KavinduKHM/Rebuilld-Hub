@@ -1,4 +1,5 @@
 import { Package, DollarSign, Edit2, Trash2, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { formatCurrencyLKR } from "../../utils/formatters";
 
 const statusConfig = {
   Available: {
@@ -123,7 +124,7 @@ export default function ResourceList({ items, isAdmin, onEdit, onDelete, loading
 
               {!isStock && (
                 <p className="text-green-400 text-xs mt-1 font-semibold">
-                  ${item.totalAmount?.toLocaleString()}
+                  {formatCurrencyLKR(item.totalAmount || 0)}
                 </p>
               )}
             </div>

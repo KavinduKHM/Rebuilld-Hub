@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Package, DollarSign, AlertCircle, CheckCircle, CreditCard } from "lucide-react";
 import resourceService from '../../services/resourceService';
+import { formatCurrencyLKR } from "../../utils/formatters";
 
 const initialForm = {
   donorName: "",
@@ -174,7 +175,7 @@ export default function ResourceAllocation({ open, onClose }) {
               </div>
               <h3 className="text-white font-bold text-lg mb-2">Payment Initiated</h3>
               <p className="text-gray-400 text-sm mb-4">
-                Your donation of <span className="text-white font-semibold">${form.amount}</span> has been registered.
+                Your donation of <span className="text-white font-semibold">{formatCurrencyLKR(form.amount || 0)}</span> has been registered.
                 Use the client secret below with Stripe to complete payment.
               </p>
               <div className="w-full bg-black/40 rounded-xl p-3 text-left border border-white/10 mb-4">

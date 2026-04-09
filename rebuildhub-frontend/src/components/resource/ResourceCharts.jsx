@@ -1,5 +1,6 @@
 import React from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { formatCurrencyLKR } from '../../utils/formatters';
 
 const ResourceCharts = ({ inventory }) => {
   // Prepare category distribution data
@@ -91,7 +92,9 @@ const ResourceCharts = ({ inventory }) => {
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-emerald-600">
-              ${inventory?.filter(i => i.type === 'MONEY').reduce((sum, i) => sum + (i.totalAmount || 0), 0).toLocaleString() || 0}
+              {formatCurrencyLKR(
+                inventory?.filter(i => i.type === 'MONEY').reduce((sum, i) => sum + (i.totalAmount || 0), 0) || 0
+              )}
             </p>
             <p className="text-sm text-gray-600">Total Funds</p>
           </div>
