@@ -20,9 +20,6 @@ const currencies = [
   { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸', minAmount: 5 },
   { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺', minAmount: 5 },
   { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧', minAmount: 5 },
-  { code: 'JPY', symbol: '¥', name: 'Japanese Yen', flag: '🇯🇵', minAmount: 500 },
-  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', flag: '🇦🇺', minAmount: 8 },
-  { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar', flag: '🇨🇦', minAmount: 7 },
 ];
 
 // Internal form component that uses Stripe
@@ -319,14 +316,14 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
                     onClick={() => handleInternationalToggle(false)}
                     className={`flex-1 py-2 px-3 rounded-lg border transition-all ${!formData.isInternational ? 'bg-blue-600 text-white' : 'bg-white border-blue-200 text-blue-700'}`}
                   >
-                    🇱🇰 Sri Lankan
+                    Sri Lankan
                   </button>
                   <button
                     type="button"
                     onClick={() => handleInternationalToggle(true)}
                     className={`flex-1 py-2 px-3 rounded-lg border transition-all ${formData.isInternational ? 'bg-blue-600 text-white' : 'bg-white border-blue-200 text-blue-700'}`}
                   >
-                    🌍 International
+                    International
                   </button>
                 </div>
               </div>
@@ -412,20 +409,19 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
                     Currency *
                   </div>
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1">
                   {currencies.filter(c => c.code !== 'LKR').map(currency => (
                     <button
                       key={currency.code}
                       type="button"
                       onClick={() => handleCurrencyChange(currency.code)}
-                      className={`p-2 rounded-lg border transition-all flex items-center justify-center gap-1 ${
+                      className={`h-8 px-1.5 rounded-md border transition-all flex items-center justify-center min-w-0 ${
                         formData.currency === currency.code
                           ? 'bg-blue-600 border-blue-600 text-white'
                           : 'bg-white border-blue-200 text-blue-700 hover:bg-blue-50'
                       }`}
                     >
-                      <span className="text-lg">{currency.flag}</span>
-                      <span className="text-xs font-medium">{currency.code}</span>
+                      <span className="text-[10px] font-semibold tracking-wider">{currency.code}</span>
                     </button>
                   ))}
                 </div>
@@ -478,9 +474,6 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
                 Amount ({formData.isInternational ? formData.currency : 'LKR'}) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600 font-medium">
-                  {getCurrencySymbol(formData.currency)}
-                </span>
                 <input
                   type="number"
                   name="amount"
@@ -489,7 +482,7 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
                   onBlur={() => handleFieldBlur('amount')}
                   min={getMinAmount(formData.currency, formData.isInternational)}
                   step={formData.isInternational && formData.currency === 'JPY' ? 1 : 100}
-                  className={`w-full pl-12 pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
+                  className={`w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
                     errors.amount && touched.amount ? 'border-red-500' : 'border-blue-200'
                   }`}
                   placeholder={`Minimum ${getCurrencySymbol(formData.currency)}${getMinAmount(formData.currency, formData.isInternational).toLocaleString()}`}

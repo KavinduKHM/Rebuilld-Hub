@@ -137,11 +137,9 @@ const ResourcePage = () => {
     item.totalQuantity < 10
   ).sort((a, b) => a.totalQuantity - b.totalQuantity);
 
-  // Low monetary funds - funds with < 2000 LKR
+  // Low monetary funds - funds with < 500 LKR
   const lowMoneyItems = [...moneyItems].filter(item => 
-    (item.totalAmount && item.totalAmount < 2000) || 
-    item.status === 'Low Stock' || 
-    item.status === 'Out of Stock'
+    (item.totalAmount ?? 0) < 500
   ).sort((a, b) => (a.totalAmount || 0) - (b.totalAmount || 0));
 
   // Critical items (Out of Stock)
@@ -151,7 +149,7 @@ const ResourcePage = () => {
 
   // Critical money items (funds with < 500 LKR - critically low)
   const criticalMoneyItems = moneyItems.filter(item => 
-    item.status === 'Out of Stock' || (item.totalAmount && item.totalAmount < 500)
+    (item.totalAmount ?? 0) < 500
   );
 
   // Get unique categories from stock items
@@ -366,7 +364,7 @@ const ResourcePage = () => {
                 </div>
               ))}
               
-              {/* Low Monetary Funds - Showing funds with < 2000 LKR */}
+              {/* Low Monetary Funds - Showing funds with < 500 LKR */}
               {lowMoneyItems.slice(0, 4).map((item) => (
                 <div key={item._id} className="bg-gradient-to-r from-red-50 to-white rounded-xl border border-red-200 p-5 hover:shadow-lg hover:border-red-300 transition-all">
                   <div className="flex items-start justify-between mb-3">
@@ -380,7 +378,7 @@ const ResourcePage = () => {
                       </div>
                     </div>
                     <span className="px-2 py-1 text-xs rounded-full bg-red-500/20 text-red-700 border border-red-500/30 animate-pulse">
-                      &lt;2000 LKR
+                      &lt;500 LKR
                     </span>
                   </div>
                   
@@ -391,12 +389,12 @@ const ResourcePage = () => {
                   <div className="mb-3">
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-red-600">Funds Remaining</span>
-                      <span className="text-red-700 font-medium">{(item.totalAmount || 0) < 2000 ? 'Critical' : 'Low'}</span>
+                      <span className="text-red-700 font-medium">{(item.totalAmount || 0) < 500 ? 'Critical' : 'Low'}</span>
                     </div>
                     <div className="w-full bg-red-100 rounded-full h-2">
                       <div 
                         className="h-2 rounded-full bg-gradient-to-r from-red-500 to-amber-500"
-                        style={{ width: `${Math.min(100, ((item.totalAmount || 0) / 2000) * 100)}%` }}
+                        style={{ width: `${Math.min(100, ((item.totalAmount || 0) / 500) * 100)}%` }}
                       />
                     </div>
                   </div>
@@ -484,15 +482,15 @@ const ResourcePage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredMoneyItems.map((item) => (
                     <div key={item._id} className={`bg-gradient-to-br from-blue-50 to-white rounded-xl border p-5 hover:shadow-lg transition-all ${
-                      item.totalAmount < 2000 ? 'border-red-300 bg-red-50/30' : 'border-blue-200'
+                      item.totalAmount < 500 ? 'border-red-300 bg-red-50/30' : 'border-blue-200'
                     }`}>
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <div className={`p-2 rounded-lg ${
-                            item.totalAmount < 2000 ? 'bg-red-100' : 'bg-blue-100'
+                            item.totalAmount < 500 ? 'bg-red-100' : 'bg-blue-100'
                           }`}>
                             <DollarSign className={`w-5 h-5 ${
-                              item.totalAmount < 2000 ? 'text-red-600' : 'text-blue-600'
+                              item.totalAmount < 500 ? 'text-red-600' : 'text-blue-600'
                             }`} />
                           </div>
                           <div>
@@ -501,26 +499,26 @@ const ResourcePage = () => {
                           </div>
                         </div>
                         <span className={`px-2 py-1 text-xs rounded-full ${
-                          item.totalAmount < 2000 
+                          item.totalAmount < 500 
                             ? 'bg-red-500/20 text-red-700 border-red-500/30 animate-pulse' 
                             : getStatusColor(item.status)
                         } border`}>
-                          {item.totalAmount < 2000 ? 'Low Funds (<2000 LKR)' : item.status}
+                          {item.totalAmount < 500 ? 'Low Funds (<500 LKR)' : item.status}
                         </span>
                       </div>
                       
                       <p className={`text-2xl font-bold mb-3 ${
-                        item.totalAmount < 2000 ? 'text-red-700' : 'text-blue-700'
+                        item.totalAmount < 500 ? 'text-red-700' : 'text-blue-700'
                       }`}>
                         LKR {(item.totalAmount || 0).toLocaleString()}
                       </p>
                       
-                      {item.totalAmount < 2000 && (
+                      {item.totalAmount < 500 && (
                         <div className="mb-3">
                           <div className="w-full bg-red-100 rounded-full h-1.5">
                             <div 
                               className="h-1.5 rounded-full bg-red-500"
-                              style={{ width: `${Math.min(100, ((item.totalAmount || 0) / 2000) * 100)}%` }}
+                              style={{ width: `${Math.min(100, ((item.totalAmount || 0) / 500) * 100)}%` }}
                             />
                           </div>
                         </div>
