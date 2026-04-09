@@ -3,6 +3,7 @@ const { uploadToCloudinary } = require("../../services/disasterService/cloudinar
 const DamageReport = require("../../models/disasterModel/DamageReportModel");
 const mapService = require("../../services/disasterService/mapService");
 const Volunteer = require("../../models/volunteerModel/volunteerModel");
+const { sendAssignmentWhatsApp } = require("../../services/notificationService/whatsappService");
 
 
 const getSuggestedVolunteerCount = (severityLevel) => {
@@ -225,16 +226,36 @@ exports.assignVolunteer = async (req, res) => {
     const alreadyAssigned = (disaster.assignedVolunteers || [])
       .map((item) => item.toString())
       .includes(volunteerObjectId);
+    let notification = {
+      skipped: true,
+      reason: alreadyAssigned
+        ? "Volunteer already assigned; notification not retriggered"
+        : "Notification not attempted",
+    };
 
     if (!alreadyAssigned) {
       disaster.assignedVolunteers = [...(disaster.assignedVolunteers || []), volunteer._id];
       await disaster.save();
+
+      try {
+        notification = await sendAssignmentWhatsApp({
+          volunteerPhone: volunteer.phone,
+          disaster,
+        });
+      } catch (notificationError) {
+        notification = {
+          skipped: true,
+          reason: notificationError.message || "Twilio send failed",
+        };
+        console.error("WhatsApp assignment notification failed:", notificationError.message);
+      }
     }
 
     return res.status(200).json({
       success: true,
       message: alreadyAssigned ? "Volunteer already assigned" : "Volunteer assigned successfully",
       data: disaster,
+      notification,
     });
   } catch (error) {
     return res.status(400).json({ message: error.message });
