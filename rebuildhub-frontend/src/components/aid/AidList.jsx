@@ -61,31 +61,29 @@ const AidList = () => {
 	};
 
 	return (
-		<div className="admin-shell">
-			<aside className="admin-sidebar page-card">
+		<div className="tac-shell">
+			<aside className="tac-sidebar">
 				<div>
-					<div className="admin-brand">Command Center</div>
-					<p className="admin-brand-subtitle">Operational Lead</p>
+					<h1>Tactical Command</h1>
+					<span className="tac-sidebar-subtitle">Sector 7G - Active</span>
 				</div>
-
-				<div className="admin-status-pill">System Status: Active</div>
 
 				<nav className="admin-nav">
 					<Link to="/admin/dashboard" className="admin-nav-link">Disasters</Link>
-					<a href="#" className="admin-nav-link">Volunteers</a>
-					<a href="#" className="admin-nav-link">Resources</a>
+					<Link to="/admin/volunteers" className="admin-nav-link">Volunteers</Link>
+					<Link to="/admin/resources" className="admin-nav-link">Resources</Link>
 					<Link to="/admin/aid-requests" className="admin-nav-link">Aid Requests</Link>
 					<Link to="/admin/aid-completed" className="admin-nav-link admin-nav-link--active">Completed Requests</Link>
 				</nav>
 
-				<div className="admin-sidebar-footer">
-					<button className="btn-secondary admin-sidebar-action" type="button" onClick={handleLogout}>
+				<div className="tac-sidebar-footer">
+					<button className="btn-secondary" type="button" onClick={handleLogout}>
 						Logout
 					</button>
 				</div>
 			</aside>
 
-			<main className="admin-main">
+			<main className="tac-main admin-main">
 				<header className="admin-topbar page-card">
 					<div>
 						<span className="section-label">Aid Operations</span>

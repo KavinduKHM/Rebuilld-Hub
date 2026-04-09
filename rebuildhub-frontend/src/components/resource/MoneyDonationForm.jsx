@@ -13,8 +13,9 @@ import {
   useElements,
 } from '@stripe/react-stripe-js';
 
-// Initialize Stripe with your publishable key
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+// Initialize Stripe with your publishable key (Vite uses import.meta.env)
+const stripeKey = import.meta.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 // Card element styling
 const cardElementOptions = {
@@ -375,12 +376,12 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center donation-modal">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose}></div>
 
-      <div className="relative bg-white rounded-2xl w-full max-w-lg mx-4 border border-blue-200 shadow-xl z-[101] max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white rounded-2xl w-full max-w-lg mx-4 border border-blue-200 shadow-xl z-[101] max-h-[90vh] overflow-y-auto donation-modal__card donation-modal__card--money">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-blue-700 to-blue-600 px-6 py-4 rounded-t-2xl">
+        <div className="sticky top-0 bg-gradient-to-r from-blue-700 to-blue-600 px-6 py-4 rounded-t-2xl donation-modal__header">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-1.5 bg-white/20 rounded-lg">
@@ -775,6 +776,28 @@ const MoneyDonationForm = ({ initialFund, onClose, onSuccess }) => {
         <div className="relative bg-white rounded-2xl p-8 shadow-xl z-[101]">
           <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto" />
           <p className="mt-2 text-blue-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!stripePromise) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+        <div className="relative bg-white rounded-2xl p-8 shadow-xl z-[101] text-center">
+          <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto" />
+          <p className="mt-3 text-blue-900 font-semibold">Stripe key is missing</p>
+          <p className="mt-1 text-blue-600 text-sm">
+            Set VITE_STRIPE_PUBLISHABLE_KEY in .env and restart the dev server.
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="mt-4 px-4 py-2.5 border border-blue-200 rounded-xl text-blue-600 hover:bg-blue-50 transition-colors font-medium"
+          >
+            Close
+          </button>
         </div>
       </div>
     );

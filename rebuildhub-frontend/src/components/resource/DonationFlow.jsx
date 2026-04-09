@@ -470,9 +470,12 @@ const DonationFlow = ({ onClose }) => {
   // Selection Screen
   if (step === 'select') {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={handleClose}>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center donation-modal" onClick={handleClose}>
         <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
-        <div className="relative bg-white rounded-2xl max-w-md w-full p-6 border border-blue-200 shadow-xl z-[101]" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="relative bg-white rounded-2xl max-w-md w-full p-6 border border-blue-200 shadow-xl z-[101] donation-modal__card donation-modal__card--select"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -517,10 +520,13 @@ const DonationFlow = ({ onClose }) => {
   // Stock Donation Form
   if (step === 'stock') {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={handleClose}>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center donation-modal" onClick={handleClose}>
         <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
-        <div className="relative bg-white rounded-2xl w-full max-w-lg mx-4 border border-blue-200 shadow-xl z-[101] max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-          <div className="sticky top-0 bg-gradient-to-r from-blue-700 to-blue-600 px-6 py-4 rounded-t-2xl">
+        <div
+          className="relative bg-white rounded-2xl w-full max-w-lg mx-4 border border-blue-200 shadow-xl z-[101] max-h-[90vh] overflow-y-auto donation-modal__card donation-modal__card--stock"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="sticky top-0 bg-gradient-to-r from-blue-700 to-blue-600 px-6 py-4 rounded-t-2xl donation-modal__header">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Package className="h-5 w-5 text-white" />
@@ -619,10 +625,13 @@ const DonationFlow = ({ onClose }) => {
 
   // Money Donation Form
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={handleClose}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center donation-modal" onClick={handleClose}>
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
-      <div className="relative bg-white rounded-2xl w-full max-w-lg mx-4 border border-green-200 shadow-xl z-[101] max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="sticky top-0 bg-gradient-to-r from-green-700 to-green-600 px-6 py-4 rounded-t-2xl">
+      <div
+        className="relative bg-white rounded-2xl w-full max-w-lg mx-4 border border-green-200 shadow-xl z-[101] max-h-[90vh] overflow-y-auto donation-modal__card donation-modal__card--money"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 bg-gradient-to-r from-green-700 to-green-600 px-6 py-4 rounded-t-2xl donation-modal__header">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-white" />
@@ -637,7 +646,7 @@ const DonationFlow = ({ onClose }) => {
             Secure payment powered by Stripe
           </p>
         </div>
-        <form onSubmit={handleMoneySubmit} className="px-6 py-4">
+        <form onSubmit={handleMoneySubmit} className="px-6 py-4 donation-modal__scroll">
           <div className="space-y-4">
             <div className="bg-green-50/30 p-4 rounded-xl border border-green-100">
               <h4 className="text-sm font-semibold text-green-900 mb-3">Donor Information</h4>
@@ -720,7 +729,7 @@ const DonationFlow = ({ onClose }) => {
             {errors.submit && <div className="bg-red-50 p-3 rounded-xl text-red-600 text-sm">{errors.submit}</div>}
           </div>
 
-          <div className="mt-6 flex gap-3 justify-end">
+          <div className="mt-6 flex gap-3 justify-end donation-modal__footer">
             <button type="button" onClick={() => setStep('select')} className="px-4 py-2 border border-green-200 rounded-xl text-green-600">Back</button>
             <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 flex items-center gap-2">
               <Heart className="h-4 w-4" />

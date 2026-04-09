@@ -385,13 +385,13 @@ const DonationForm = ({ initialItem, onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto donation-modal">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div className="fixed inset-0 transition-opacity bg-blue-900 bg-opacity-50 backdrop-blur-sm" onClick={handleClose}></div>
 
-        <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-blue-200">
+        <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-blue-200 donation-modal__card donation-modal__card--stock">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-700 to-blue-600 px-6 py-4">
+          <div className="bg-gradient-to-r from-blue-700 to-blue-600 px-6 py-4 donation-modal__header">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 bg-white/20 rounded-lg">
@@ -423,7 +423,7 @@ const DonationForm = ({ initialItem, onClose }) => {
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="px-6 py-4 max-h-[70vh] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="px-6 py-4 donation-modal__scroll">
             <div className="space-y-4">
               {/* Donor Information */}
               <div className="bg-blue-50/30 p-4 rounded-xl border border-blue-100">

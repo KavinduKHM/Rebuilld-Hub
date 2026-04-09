@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Package, DollarSign } from 'lucide-react';
+import '../../pages/resource/ResourcePage.css';
 
 const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) => {
   const [formData, setFormData] = useState({
@@ -122,17 +123,48 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
     }
   };
 
+  const headerStyle = {
+    background: 'linear-gradient(135deg, #1d4ed8, #2563eb 45%, #3b82f6)',
+    color: '#ffffff'
+  };
+
+  const closeStyle = {
+    width: '2rem',
+    height: '2rem',
+    borderRadius: '999px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'rgba(255, 255, 255, 0.18)',
+    border: '1px solid rgba(255, 255, 255, 0.3)'
+  };
+
+  const footerStyle = {
+    borderTop: '1px solid rgba(226, 232, 240, 0.7)',
+    background: 'rgba(248, 250, 252, 0.9)',
+    paddingTop: '0.75rem',
+    borderBottomLeftRadius: '1.2rem',
+    borderBottomRightRadius: '1.2rem'
+  };
+
+  const primaryButtonStyle = {
+    background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+    color: '#ffffff',
+    border: '1px solid transparent',
+    boxShadow: '0 10px 20px rgba(37, 99, 235, 0.3)'
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={onClose}></div>
+    <div className="fixed inset-0 z-50 overflow-y-auto inventory-modal">
+      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0 inventory-modal__shell">
+        <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75 inventory-modal__backdrop" onClick={onClose}></div>
 
-        <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+        <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full inventory-modal__card">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 inventory-modal__header" style={headerStyle}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 inventory-modal__title">
                 {formData.type === 'STOCK' ? 
                   <Package className="h-5 w-5 text-white" /> : 
                   <DollarSign className="h-5 w-5 text-white" />
@@ -141,21 +173,21 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
                   {isEditing ? 'Edit Inventory Item' : 'Add New Inventory Item'}
                 </h3>
               </div>
-              <button onClick={onClose} className="text-white hover:text-gray-200 transition-colors">
+              <button onClick={onClose} className="text-white hover:text-gray-200 transition-colors inventory-modal__close" style={closeStyle}>
                 <X className="h-5 w-5" />
               </button>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="px-6 py-4">
-            <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="px-6 py-4 inventory-modal__body">
+            <div className="space-y-4 inventory-modal__fields">
               {/* Type Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 inventory-modal__label">
                   Item Type *
                 </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2">
+                <div className="flex gap-4 inventory-modal__toggle">
+                  <label className="flex items-center gap-2 inventory-modal__radio">
                     <input
                       type="radio"
                       name="type"
@@ -166,7 +198,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
                     />
                     <span className="text-sm text-gray-700">Stock (Physical Items)</span>
                   </label>
-                  <label className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 inventory-modal__radio">
                     <input
                       type="radio"
                       name="type"
@@ -182,7 +214,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
 
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 inventory-modal__label">
                   Item Name *
                 </label>
                 <input
@@ -190,7 +222,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all inventory-modal__input ${
                     errors.name ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="e.g., Rice, Medical Kits, Water Bottles"
@@ -202,14 +234,14 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
               {formData.type === 'STOCK' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1 inventory-modal__label">
                       Category *
                     </label>
                     <select
                       name="category"
                       value={formData.category}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none inventory-modal__input"
                     >
                       <option value="Food">Food</option>
                       <option value="Cloth">Clothing</option>
@@ -218,7 +250,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1 inventory-modal__label">
                       Unit *
                     </label>
                     <input
@@ -226,7 +258,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
                       name="unit"
                       value={formData.unit}
                       onChange={handleChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none inventory-modal__input ${
                         errors.unit ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="e.g., kg, boxes, liters, pieces"
@@ -235,7 +267,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1 inventory-modal__label">
                       Initial Quantity
                     </label>
                     <input
@@ -245,7 +277,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
                       onChange={handleChange}
                       min="0"
                       step="1"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none inventory-modal__input"
                     />
                   </div>
                 </>
@@ -254,7 +286,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
               {/* Money-specific fields */}
               {formData.type === 'MONEY' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1 inventory-modal__label">
                     Initial Amount (USD)
                   </label>
                   <input
@@ -264,14 +296,14 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
                     onChange={handleChange}
                     min="0"
                     step="0.01"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none inventory-modal__input"
                   />
                 </div>
               )}
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 inventory-modal__label">
                   Description
                 </label>
                 <textarea
@@ -279,7 +311,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
                   value={formData.description}
                   onChange={handleChange}
                   rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none inventory-modal__input"
                   placeholder="Additional details about this item..."
                 />
                 {formData.description && (
@@ -296,18 +328,19 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
               )}
             </div>
 
-            <div className="mt-6 flex gap-3 justify-end">
+            <div className="mt-6 flex gap-3 justify-end inventory-modal__actions" style={footerStyle}>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors inventory-modal__button"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md inventory-modal__button inventory-modal__button--primary"
+                style={primaryButtonStyle}
               >
                 {isSubmitting ? 'Saving...' : (isEditing ? 'Update Item' : 'Add Item')}
               </button>

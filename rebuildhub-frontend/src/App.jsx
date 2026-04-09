@@ -105,25 +105,20 @@ const AppShell = () => {
         <Route
           path="/resources"
           element={
-            <ProtectedRoute>
+            
               <ResourcePage />
-            </ProtectedRoute>
           }
         />
         <Route
           path="/donate"
           element={
-            <ProtectedRoute>
               <DonationForm />
-            </ProtectedRoute>
           }
         />
         <Route
           path="/donate/:itemId"
           element={
-            <ProtectedRoute>
               <DonationForm />
-            </ProtectedRoute>
           }
         />
         <Route
