@@ -437,14 +437,13 @@ const DonationForm = ({ initialItem, onClose }) => {
                       Full Name <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
                       <input
                         type="text"
                         name="donorName"
                         value={formData.donorName}
                         onChange={handleChange}
                         onBlur={() => handleFieldBlur('donorName')}
-                        className={`w-full pl-10 pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
+                        className={`w-full pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
                           errors.donorName && touched.donorName ? 'border-red-500' : 'border-blue-200'
                         }`}
                         placeholder="Enter your full name"
@@ -485,20 +484,17 @@ const DonationForm = ({ initialItem, onClose }) => {
                     <label className="block text-sm font-medium text-blue-800 mb-1">
                       Email <span className="text-blue-400 text-xs">(Optional)</span>
                     </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        onBlur={() => handleFieldBlur('email')}
-                        className={`w-full pl-10 pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
-                          errors.email && touched.email ? 'border-red-500' : 'border-blue-200'
-                        }`}
-                        placeholder="your@email.com"
-                      />
-                    </div>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      onBlur={() => handleFieldBlur('email')}
+                      className={`w-full pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
+                        errors.email && touched.email ? 'border-red-500' : 'border-blue-200'
+                      }`}
+                      placeholder="your@email.com"
+                    />
                     {errors.email && touched.email && (
                       <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3" />
@@ -553,23 +549,35 @@ const DonationForm = ({ initialItem, onClose }) => {
                     <label className="block text-sm font-medium text-blue-800 mb-1">
                       Quantity to Donate <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="number"
-                      name="quantity"
-                      value={formData.quantity}
-                      onChange={handleChange}
-                      onBlur={() => handleFieldBlur('quantity')}
-                      min="1"
-                      step="1"
-                      className={`w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
-                        errors.quantity && touched.quantity ? 'border-red-500' : 'border-blue-200'
-                      }`}
-                      placeholder="Enter quantity (whole numbers only)"
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        name="quantity"
+                        value={formData.quantity}
+                        onChange={handleChange}
+                        onBlur={() => handleFieldBlur('quantity')}
+                        min="1"
+                        step="1"
+                        className={`w-1/4 px-2 py-1.5 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
+                          errors.quantity && touched.quantity ? 'border-red-500' : 'border-blue-200'
+                        }`}
+                        placeholder="Enter quantity (whole numbers only)"
+                      />
+                      {selectedInventory?.unit && (
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-600">
+                          {selectedInventory.unit}
+                        </span>
+                      )}
+                    </div>
                     {errors.quantity && touched.quantity && (
                       <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3" />
                         {errors.quantity}
+                      </p>
+                    )}
+                    {selectedInventory && (
+                      <p className="mt-1 text-xs text-blue-500">
+                        Current available stock: {selectedInventory.totalQuantity} {selectedInventory.unit}
                       </p>
                     )}
                   </div>
