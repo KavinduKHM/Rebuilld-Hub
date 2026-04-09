@@ -1,39 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements,
-} from '@stripe/react-stripe-js';
 // Added missing imports for used icons
 import {
-  CheckCircle, Heart, CreditCard, X, Lock, User, AlertTriangle, Mail, Globe, Building, Loader2
+  Heart, CreditCard, X, Lock, AlertTriangle, Globe, Loader2
 } from 'lucide-react';
-
-// Initialize Stripe with your publishable key (Vite uses import.meta.env)
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
-
-// Card element styling
-const cardElementOptions = {
-  style: {
-    base: {
-      color: '#1e3a8a',
-      fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
-      fontSmoothing: 'antialiased',
-      fontSize: '16px',
-      '::placeholder': {
-        color: '#93c5fd',
-      },
-      padding: '12px',
-    },
-    invalid: {
-      color: '#dc2626',
-      iconColor: '#dc2626',
-    },
-  },
-  hidePostalCode: true,
-};
 
 // Exchange rates for display
 const exchangeRates = {
@@ -58,9 +27,6 @@ const currencies = [
 
 // Internal form component that uses Stripe
 const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFunds }) => {
-  const stripe = useStripe();
-  const elements = useElements();
-  
   const [formData, setFormData] = useState({
     donorName: '',
     donorNIC: '',
@@ -77,8 +43,6 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
   const [touched, setTouched] = useState({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedFund, setSelectedFund] = useState(initialFund || null);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [paymentIntentId, setPaymentIntentId] = useState(null);
 
   const convertToLKR = (amount, fromCurrency) => {
     if (fromCurrency === 'LKR') return amount;
@@ -190,6 +154,8 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
         case 'amount':
           error = validateAmount(value, formData.isInternational, formData.currency);
           break;
+        default:
+          break;
       }
       setErrors(prev => ({ ...prev, [name]: error }));
     }
@@ -262,10 +228,6 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    if (!stripe || !elements) {
-      setErrors({ submit: 'Payment system is not ready. Please try again.' });
-      return;
-    }
 
     setIsProcessing(true);
     
@@ -276,7 +238,7 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
         amountInLKR = convertToLKR(amountInLKR, formData.currency);
       }
       
-      // Step 1: Create donation and get payment intent
+      // Create Stripe checkout session and redirect
       const donationData = {
         donorName: formData.donorName.trim(),
         donorNIC: formData.donorNIC.trim() || (formData.isInternational ? 'INTERNATIONAL' : 'N/A'),
@@ -292,52 +254,24 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
         originalAmount: formData.isInternational ? parseFloat(formData.amount) : null,
       };
 
-      const response = await fetch('http://localhost:5000/Rebuildhub/donations', {
+      const response = await fetch('http://localhost:5000/Rebuildhub/donations/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(donationData),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create donation');
-      }
-
       const result = await response.json();
-      const { clientSecret, donation } = result;
-      setPaymentIntentId(donation._id);
 
-      // Step 2: Confirm payment with Stripe
-      const cardElement = elements.getElement(CardElement);
-      
-      const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: cardElement,
-          billing_details: {
-            name: formData.donorName.trim(),
-            email: formData.email?.trim() || '',
-          },
-        },
-      });
-
-      if (stripeError) {
-        throw new Error(stripeError.message);
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to create checkout session');
       }
 
-      if (paymentIntent.status === 'succeeded') {
-        // Step 3: Update donation status to SUCCESS
-        await fetch(`http://localhost:5000/Rebuildhub/donations/${donation._id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ paymentStatus: 'SUCCESS' }),
-        }).catch(console.error);
-        
-        setPaymentSuccess(true);
-        setTimeout(() => {
-          if (onSuccess) onSuccess();
-          if (onClose) onClose();
-        }, 3000);
+      if (result.url) {
+        window.location.href = result.url;
+        return;
       }
+
+      throw new Error('No checkout URL received from server');
     } catch (error) {
       console.error('Payment error:', error);
       setErrors({ submit: error.message || 'Payment failed. Please try again.' });
@@ -345,37 +279,6 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
       setIsProcessing(false);
     }
   };
-
-  if (paymentSuccess) {
-    return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose}></div>
-        <div className="relative bg-white rounded-2xl p-8 text-center max-w-md shadow-xl border border-blue-200 z-[101]">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-10 h-10 text-green-600" />
-          </div>
-          <Heart className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-blue-900 mb-2">Payment Successful!</h3>
-          <p className="text-blue-600 mb-4">
-            Thank you for your donation of {formData.isInternational ? formData.currency : 'LKR'} {parseFloat(formData.amount).toLocaleString()}. 
-            Your contribution will help save lives.
-          </p>
-          {formData.isInternational && formData.currency !== 'LKR' && (
-            <p className="text-sm text-green-600 bg-green-50 p-2 rounded-lg mb-4">
-              ≈ LKR {convertToLKR(parseFloat(formData.amount), formData.currency).toLocaleString()}
-            </p>
-          )}
-          <p className="text-sm text-blue-500 mb-4">Transaction ID: {paymentIntentId}</p>
-          <button
-            onClick={onClose}
-            className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-all"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center donation-modal">
@@ -433,20 +336,17 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
                   <label className="block text-sm font-medium text-blue-800 mb-1">
                     Full Name <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
-                    <input
-                      type="text"
-                      name="donorName"
-                      value={formData.donorName}
-                      onChange={handleChange}
-                      onBlur={() => handleFieldBlur('donorName')}
-                      className={`w-full pl-10 pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
-                        errors.donorName && touched.donorName ? 'border-red-500' : 'border-blue-200'
-                      }`}
-                      placeholder="Enter your full name"
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    name="donorName"
+                    value={formData.donorName}
+                    onChange={handleChange}
+                    onBlur={() => handleFieldBlur('donorName')}
+                    className={`w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
+                      errors.donorName && touched.donorName ? 'border-red-500' : 'border-blue-200'
+                    }`}
+                    placeholder="Enter your full name"
+                  />
                   {errors.donorName && touched.donorName && (
                     <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
                       <AlertTriangle className="w-3 h-3" />
@@ -485,20 +385,17 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
                   <label className="block text-sm font-medium text-blue-800 mb-1">
                     Email <span className="text-blue-400 text-xs">(Optional)</span>
                   </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      onBlur={() => handleFieldBlur('email')}
-                      className={`w-full pl-10 pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
-                        errors.email && touched.email ? 'border-red-500' : 'border-blue-200'
-                      }`}
-                      placeholder="your@email.com"
-                    />
-                  </div>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    onBlur={() => handleFieldBlur('email')}
+                    className={`w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
+                      errors.email && touched.email ? 'border-red-500' : 'border-blue-200'
+                    }`}
+                    placeholder="your@email.com"
+                  />
                   {errors.email && touched.email && (
                     <p className="mt-1 text-xs text-red-500">{errors.email}</p>
                   )}
@@ -544,23 +441,20 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
                 <label className="block text-sm font-medium text-blue-800 mb-1">
                   Select Fund <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
-                  <select
-                    value={formData.inventoryId}
-                    onChange={handleFundSelect}
-                    className={`w-full pl-10 pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
-                      errors.inventoryId && touched.inventoryId ? 'border-red-500' : 'border-blue-200'
-                    }`}
-                  >
-                    <option value="">-- Select a fund --</option>
-                    {availableFunds.map(fund => (
-                      <option key={fund._id} value={fund._id}>
-                        {fund.name} - Balance: LKR {(fund.totalAmount || 0).toLocaleString()}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  value={formData.inventoryId}
+                  onChange={handleFundSelect}
+                  className={`w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
+                    errors.inventoryId && touched.inventoryId ? 'border-red-500' : 'border-blue-200'
+                  }`}
+                >
+                  <option value="">-- Select a fund --</option>
+                  {availableFunds.map(fund => (
+                    <option key={fund._id} value={fund._id}>
+                      {fund.name} - Balance: LKR {(fund.totalAmount || 0).toLocaleString()}
+                    </option>
+                  ))}
+                </select>
                 {errors.inventoryId && touched.inventoryId && (
                   <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" />
@@ -649,17 +543,10 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
               </div>
             </div>
 
-            {/* Card Element */}
-            <div>
-              <label className="block text-sm font-medium text-blue-800 mb-1">
-                Card Details <span className="text-red-500">*</span>
-              </label>
-              <div className="bg-white border border-blue-200 rounded-xl p-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
-                <CardElement options={cardElementOptions} />
-              </div>
-              <p className="mt-1 text-xs text-blue-400 flex items-center gap-1">
-                <Lock className="w-3 h-3" />
-                Your card information is encrypted and secure. Test cards: 4242 4242 4242 4242
+            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-700 flex items-center gap-2">
+                <CreditCard className="w-4 h-4" />
+                <strong>Secure Payment</strong> - You'll be redirected to Stripe to complete your payment.
               </p>
             </div>
 
@@ -727,7 +614,7 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
             </button>
             <button
               type="submit"
-              disabled={isProcessing || !stripe}
+              disabled={isProcessing}
               className="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex items-center gap-2 font-medium"
             >
               {isProcessing ? (
@@ -738,7 +625,7 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
               ) : (
                 <>
                   <Heart className="h-4 w-4" />
-                  Donate {formData.isInternational ? formData.currency : 'LKR'} {formData.amount ? parseFloat(formData.amount).toLocaleString() : '0'}
+                  Proceed to Payment
                 </>
               )}
             </button>
@@ -749,7 +636,6 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
   );
 };
 
-// Wrapper component with Elements provider
 const MoneyDonationForm = ({ initialFund, onClose, onSuccess }) => {
   const [availableFunds, setAvailableFunds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -783,37 +669,13 @@ const MoneyDonationForm = ({ initialFund, onClose, onSuccess }) => {
     );
   }
 
-  if (!stripePromise) {
-    return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
-        <div className="relative bg-white rounded-2xl p-8 shadow-xl z-[101] text-center">
-          <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto" />
-          <p className="mt-3 text-blue-900 font-semibold">Stripe key is missing</p>
-          <p className="mt-1 text-blue-600 text-sm">
-            Set VITE_STRIPE_PUBLISHABLE_KEY in .env and restart the dev server.
-          </p>
-          <button
-            type="button"
-            onClick={onClose}
-            className="mt-4 px-4 py-2.5 border border-blue-200 rounded-xl text-blue-600 hover:bg-blue-50 transition-colors font-medium"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <Elements stripe={stripePromise}>
-      <MoneyDonationFormInner
-        initialFund={initialFund}
-        onClose={onClose}
-        onSuccess={onSuccess}
-        availableFunds={availableFunds}
-      />
-    </Elements>
+    <MoneyDonationFormInner
+      initialFund={initialFund}
+      onClose={onClose}
+      onSuccess={onSuccess}
+      availableFunds={availableFunds}
+    />
   );
 };
 
