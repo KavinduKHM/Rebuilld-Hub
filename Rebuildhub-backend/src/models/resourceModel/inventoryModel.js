@@ -8,7 +8,21 @@ const inventorySchema = new mongoose.Schema(
 
     category: {
   type: String,
-  enum: ["Food", "Cloth", "Sanitory"],
+  enum: [
+    "Food",
+    "Cloth",
+    "Sanitory",
+    "Clothing - Child",
+    "Clothing - Adult",
+    "Clothing - Male",
+    "Clothing - Female",
+    "Sanitary Items",
+    "Medicines",
+    "Water & Beverages",
+    "Shelter Supplies",
+    "Baby Care",
+    "Other Essentials"
+  ],
   required: function () {
     return this.type === "STOCK"; // Only required for STOCK
   },

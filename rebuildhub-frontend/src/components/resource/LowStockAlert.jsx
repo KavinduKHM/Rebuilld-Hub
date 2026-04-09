@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Package, X } from 'lucide-react';
+import { AlertTriangle, DollarSign, Package, X } from 'lucide-react';
 
 const LowStockAlert = ({ lowStockItems, onViewItem }) => {
   const [isDismissed, setIsDismissed] = useState(false);
@@ -13,7 +13,7 @@ const LowStockAlert = ({ lowStockItems, onViewItem }) => {
           <div className="flex items-center">
             <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
             <h3 className="text-sm font-medium text-amber-800">
-              Low Stock Alert
+              Critical Resource Alert
             </h3>
           </div>
           <button
@@ -26,7 +26,7 @@ const LowStockAlert = ({ lowStockItems, onViewItem }) => {
         
         <div className="mt-3">
           <p className="text-sm text-amber-700 mb-2">
-            The following items are running low and need immediate attention:
+            The following stock and fund items are at critical levels and need immediate attention:
           </p>
           <div className="space-y-2">
             {lowStockItems.slice(0, 5).map((item) => (
@@ -36,26 +36,34 @@ const LowStockAlert = ({ lowStockItems, onViewItem }) => {
                 onClick={() => onViewItem && onViewItem(item)}
               >
                 <div className="flex items-center">
-                  <Package className="h-4 w-4 text-amber-500 mr-2" />
+                  {item.type === 'MONEY'
+                    ? <DollarSign className="h-4 w-4 text-amber-500 mr-2" />
+                    : <Package className="h-4 w-4 text-amber-500 mr-2" />}
                   <div>
                     <p className="text-sm font-medium text-gray-800">{item.name}</p>
                     <p className="text-xs text-gray-500">
-                      Code: {item.inventoryCode} | Category: {item.category}
+                      Code: {item.inventoryCode} | {item.type === 'MONEY' ? 'Fund' : `Category: ${item.category}`}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold text-amber-600">
-                    {item.totalQuantity} {item.unit} left
+                    {item.type === 'MONEY'
+                      ? `LKR ${Number(item.totalAmount || 0).toLocaleString()}`
+                      : `${item.totalQuantity} ${item.unit} left`}
                   </p>
-                  <p className="text-xs text-red-500">⚠️ Low Stock</p>
+                  <p className={`text-xs ${item.status === 'Out of Stock' ? 'text-red-600' : 'text-amber-600'}`}>
+                    {item.type === 'MONEY'
+                      ? (item.status === 'Out of Stock' ? 'Out of Stock Funds' : 'Low Funds')
+                      : (item.status === 'Out of Stock' ? 'Out of Stock' : 'Low Stock')}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
           {lowStockItems.length > 5 && (
             <p className="text-xs text-amber-600 mt-2 text-center">
-              +{lowStockItems.length - 5} more items low in stock
+              +{lowStockItems.length - 5} more critical stock items
             </p>
           )}
         </div>
