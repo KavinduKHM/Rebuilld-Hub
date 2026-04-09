@@ -664,7 +664,7 @@ const ResourcePage = () => {
                 <div className="p-2 bg-red-100 rounded-lg">
                   <Heart className="w-5 h-5 text-red-600" />
                 </div>
-                <p className="text-blue-600 text-sm">Low Funds (&lt;2000 LKR)</p>
+                <p className="text-blue-600 text-sm">Low Funds (&lt;500 LKR)</p>
               </div>
               <p className="text-2xl font-bold text-red-600">{lowMoneyItems.length}</p>
             </div>
