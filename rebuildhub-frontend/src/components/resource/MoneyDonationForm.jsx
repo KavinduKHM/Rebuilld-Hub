@@ -1,10 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  X, CreditCard, DollarSign, Heart, Shield, 
-  AlertTriangle, User, Mail, CheckCircle, 
-  Lock, Calendar, Tag, Building, Loader2, Globe
-} from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -12,10 +6,13 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
+// Added missing imports for used icons
+import {
+  CheckCircle, Heart, CreditCard, X, Lock, User, AlertTriangle, Mail, Globe, Building, Loader2
+} from 'lucide-react';
 
 // Initialize Stripe with your publishable key (Vite uses import.meta.env)
-const stripeKey = import.meta.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
-const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 // Card element styling
 const cardElementOptions = {
@@ -163,6 +160,11 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
       case 'inventoryId':
         error = validateFund(formData.inventoryId);
         break;
+      default: {
+        // Default case explicitly added for ESLint
+        error = undefined;
+        break;
+      }
     }
     setErrors(prev => ({ ...prev, [fieldName]: error }));
   };
