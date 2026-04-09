@@ -73,92 +73,94 @@ const InventoryAnalyticsCharts = ({ inventory = [], donations = [] }) => {
     return Array.from(map, ([name, value]) => ({ name, value }));
   }, [donations, inventory]);
 
-  const emptyState = (
-    <div className="resource-chart__empty">
-      <p>No chart data available yet.</p>
+  const renderEmptyState = (message) => (
+    <div className="resource-chart__empty" style={{ minHeight: '170px' }}>
+      <p>{message}</p>
     </div>
   );
 
   return (
-    <div className="resource-chart-grid">
-      <article className="resource-chart-card">
+    <div className="resource-chart-grid" style={{ gap: '0.75rem' }}>
+      <article className="resource-chart-card" style={{ padding: '0.6rem' }}>
         <div className="resource-chart-card__header">
           <span className="section-label">Inventory Distribution</span>
-          <h3 className="page-title">By Category (Stock)</h3>
+          <h3 className="page-title">Stock by Category</h3>
         </div>
-        <div className="resource-chart-card__body">
-          {inventoryByCategory.length === 0 ? emptyState : (
-            <ResponsiveContainer width="100%" height={220}>
+        <div className="resource-chart-card__body" style={{ minHeight: '180px' }}>
+          {inventoryByCategory.length === 0 ? renderEmptyState('No inventory category data available.') : (
+            <ResponsiveContainer width="100%" height={170}>
               <BarChart data={inventoryByCategory}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="value" name="Quantity" fill="#f59e0b" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="value" name="Quantity" fill="#f59e0b" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </div>
       </article>
 
-      <article className="resource-chart-card">
+      <article className="resource-chart-card" style={{ padding: '0.6rem' }}>
         <div className="resource-chart-card__header">
           <span className="section-label">Inventory Distribution</span>
           <h3 className="page-title">By Type</h3>
         </div>
-        <div className="resource-chart-card__body">
-          {inventoryByType.length === 0 ? emptyState : (
-            <ResponsiveContainer width="100%" height={220}>
+        <div className="resource-chart-card__body" style={{ minHeight: '180px' }}>
+          {inventoryByType.length === 0 ? renderEmptyState('No inventory type data available.') : (
+            <ResponsiveContainer width="100%" height={170}>
               <PieChart>
-                <Pie data={inventoryByType} dataKey="value" nameKey="name" outerRadius={88} label>
+                <Pie data={inventoryByType} dataKey="value" nameKey="name" outerRadius={62} label>
                   {inventoryByType.map((entry, index) => (
                     <Cell key={`inventory-type-${entry.name}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           )}
         </div>
       </article>
 
-      <article className="resource-chart-card">
+      <article className="resource-chart-card" style={{ padding: '0.6rem' }}>
         <div className="resource-chart-card__header">
           <span className="section-label">Donation Distribution</span>
-          <h3 className="page-title">By Category (Stock Donations)</h3>
+          <h3 className="page-title">Stock Donations by Category</h3>
         </div>
-        <div className="resource-chart-card__body">
-          {donationByCategory.length === 0 ? emptyState : (
-            <ResponsiveContainer width="100%" height={220}>
+        <div className="resource-chart-card__body" style={{ minHeight: '180px' }}>
+          {donationByCategory.length === 0 ? renderEmptyState('No stock donation category data available.') : (
+            <ResponsiveContainer width="100%" height={170}>
               <BarChart data={donationByCategory}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="value" name="Donated Quantity" fill="#0ea5e9" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="value" name="Donated Quantity" fill="#0ea5e9" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </div>
       </article>
 
-      <article className="resource-chart-card">
+      <article className="resource-chart-card" style={{ padding: '0.6rem' }}>
         <div className="resource-chart-card__header">
           <span className="section-label">Donation Distribution</span>
           <h3 className="page-title">By Type</h3>
         </div>
-        <div className="resource-chart-card__body">
-          {donationByType.length === 0 ? emptyState : (
-            <ResponsiveContainer width="100%" height={220}>
+        <div className="resource-chart-card__body" style={{ minHeight: '180px' }}>
+          {donationByType.length === 0 ? renderEmptyState('No donation type data available.') : (
+            <ResponsiveContainer width="100%" height={170}>
               <PieChart>
-                <Pie data={donationByType} dataKey="value" nameKey="name" outerRadius={88} label>
+                <Pie data={donationByType} dataKey="value" nameKey="name" outerRadius={62} label>
                   {donationByType.map((entry, index) => (
                     <Cell key={`donation-type-${entry.name}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           )}

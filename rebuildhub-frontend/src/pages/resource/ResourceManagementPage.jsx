@@ -11,6 +11,18 @@ import LowStockAlert from '../../components/resource/LowStockAlert';
 import InventoryAnalyticsCharts from '../../components/resource/InventoryAnalyticsCharts';
 import "./ResourcePage.css";
 
+const themedHeaderStyle = {
+  background: 'linear-gradient(180deg, rgba(248, 251, 255, 0.96), rgba(239, 245, 255, 0.92))',
+  border: '1px solid rgba(191, 219, 254, 0.72)',
+  boxShadow: '0 16px 36px rgba(147, 197, 253, 0.24)'
+};
+
+const themedPanelStyle = {
+  background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 255, 0.92))',
+  border: '1px solid rgba(191, 219, 254, 0.72)',
+  boxShadow: '0 14px 30px rgba(147, 197, 253, 0.2)'
+};
+
 const ResourceManagementPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -135,6 +147,7 @@ const ResourceManagementPage = () => {
           <Link to="/admin/dashboard" className="admin-nav-link">Disasters</Link>
           <Link to="/admin/volunteers" className="admin-nav-link">Volunteers</Link>
           <Link to="/admin/resources" className="admin-nav-link admin-nav-link--active">Resources</Link>
+          <Link to="/admin/donations" className="admin-nav-link">Donations</Link>
           <Link to="/admin/aid-requests" className="admin-nav-link">Aid Requests</Link>
         </nav>
 
@@ -147,7 +160,7 @@ const ResourceManagementPage = () => {
         <div className="page-shell resource-shell">
           <div className="container container--wide resource-shell__inner">
             {/* Header */}
-            <div className="page-card resource-hero">
+            <div className="page-card resource-hero" style={themedHeaderStyle}>
               <div className="page-header">
                 <div>
                   <span className="section-label">Resource Command</span>
@@ -241,7 +254,7 @@ const ResourceManagementPage = () => {
                 />
 
                 {/* Inventory Table */}
-                <div className="page-card resource-panel">
+                <div className="page-card resource-panel" style={themedPanelStyle}>
                   <InventoryTable
                     inventory={inventory}
                     onEdit={handleEditItem}
@@ -251,7 +264,7 @@ const ResourceManagementPage = () => {
                   />
                 </div>
 
-                <div className="page-card resource-panel">
+                <div className="page-card resource-panel" style={themedPanelStyle}>
                   <div className="resource-ledger__header">
                     <div>
                       <span className="section-label">Inventory Analytics</span>
@@ -263,7 +276,7 @@ const ResourceManagementPage = () => {
                 </div>
 
                 {selectedItem && (
-                  <div className="page-card resource-panel">
+                  <div className="page-card resource-panel" style={themedPanelStyle}>
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <span className="section-label">Selected Item</span>
@@ -328,7 +341,7 @@ const ResourceManagementPage = () => {
                 )}
 
                 {/* Stats Details */}
-                <div className="page-card resource-panel">
+                <div className="page-card resource-panel" style={themedPanelStyle}>
                   <StatisticsCards stats={stats} />
                 </div>
               </>
