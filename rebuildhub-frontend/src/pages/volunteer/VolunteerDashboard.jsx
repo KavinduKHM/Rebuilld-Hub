@@ -1,7 +1,7 @@
 // src/pages/volunteer/VolunteerDashboard.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./VolunteerDashboard.css";
 import "../../assets/styles/global.css";
 
@@ -9,6 +9,7 @@ import EventsMap from "./components/EventsMap";
 import EventCard from "./components/EventCard";
 import ProfileEditor from "./components/ProfileEditor";
 import { clearAuthSession, getAuthSession } from "../../services/authSession";
+import { getDisasters } from "../../services/disasterService";
 
 // Demo events data for fallback (moved inside component scope)
 const demoEvents = [
@@ -98,6 +99,8 @@ const VolunteerDashboard = () => {
   const [volunteer, setVolunteer] = useState(null);
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
+  const [activeDisasters, setActiveDisasters] = useState([]);
+  const [disasterLoading, setDisasterLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -211,6 +214,23 @@ const VolunteerDashboard = () => {
     }
   }, [selectedLocation, selectedCategory]);
 
+  const fetchDisasters = useCallback(async () => {
+    setDisasterLoading(true);
+    try {
+      const response = await getDisasters();
+      const rows = asArray(response.data || response);
+      const activeRows = rows.filter(
+        (item) => item.status === "Active" && item.verificationStatus === "Verified",
+      );
+      setActiveDisasters(activeRows);
+    } catch (error) {
+      console.error("Error fetching disasters:", error);
+      setActiveDisasters([]);
+    } finally {
+      setDisasterLoading(false);
+    }
+  }, []);
+
   const fetchCategories = async () => {
     try {
       const response = await axios.get(
@@ -239,6 +259,10 @@ const VolunteerDashboard = () => {
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
+
+  useEffect(() => {
+    fetchDisasters();
+  }, [fetchDisasters]);
 
   // Filter events when filters change
   useEffect(() => {
@@ -289,6 +313,27 @@ const VolunteerDashboard = () => {
     navigate("/", { replace: true });
   };
 
+  const handleAssign = async (disasterId) => {
+    if (volunteer?.status !== "approved") {
+      setStatusMessage("✗ Only approved volunteers can assign themselves to a disaster.");
+      setTimeout(() => setStatusMessage(""), 3000);
+      return;
+    }
+
+    try {
+      await axios.post(`http://localhost:5000/api/disasters/${disasterId}/assign-volunteer`, {
+        volunteerId: volunteer?._id || volunteer?.volunteerId,
+        volunteerEmail: volunteer?.email,
+      });
+      await fetchDisasters();
+      setStatusMessage("✓ You have been assigned to the disaster response.");
+      setTimeout(() => setStatusMessage(""), 3000);
+    } catch (error) {
+      setStatusMessage("✗ Unable to assign. Please try again.");
+      setTimeout(() => setStatusMessage(""), 3000);
+    }
+  };
+
   if (!volunteer) {
     return <div className="dashboard-loading">Loading...</div>;
   }
@@ -317,6 +362,14 @@ const VolunteerDashboard = () => {
           >
             <span className="material-symbols-outlined">dashboard</span>
             <span>Dashboard</span>
+          </button>
+          <button
+            className={`admin-nav-link nav-item ${activeTab === "disasters" ? "admin-nav-link--active active" : ""}`}
+            onClick={() => setActiveTab("disasters")}
+            type="button"
+          >
+            <span className="material-symbols-outlined">crisis_alert</span>
+            <span>Disasters</span>
           </button>
           <button
             className={`admin-nav-link nav-item ${activeTab === "events" ? "admin-nav-link--active active" : ""}`}
@@ -411,6 +464,62 @@ const VolunteerDashboard = () => {
               </div>
             </div>
 
+            {/* Assigned Disasters */}
+            <div className="admin-panel page-card volunteer-disaster-panel volunteer-disaster-panel--dashboard">
+              <div className="section-header">
+                <h2>My Assigned Disasters</h2>
+                <button onClick={() => setActiveTab("disasters")}>
+                  View All →
+                </button>
+              </div>
+              {(() => {
+                const volunteerId = volunteer?._id?.toString();
+                const assigned = activeDisasters.filter((disaster) =>
+                  (disaster.assignedVolunteers || []).some(
+                    (assignedId) => assignedId?.toString() === volunteerId,
+                  ),
+                );
+
+                if (disasterLoading) {
+                  return <div className="loading">Loading assignments...</div>;
+                }
+
+                if (assigned.length === 0) {
+                  return <p className="empty-state">No assigned disasters yet.</p>;
+                }
+
+                return (
+                  <div className="volunteer-disaster-grid assigned-preview-grid">
+                    {assigned.slice(0, 3).map((disaster) => (
+                      <article key={disaster._id} className="volunteer-disaster-card">
+                        <div
+                          className="volunteer-disaster-media"
+                          style={{
+                            backgroundImage: disaster.images?.[0]
+                              ? `linear-gradient(180deg, rgba(12,18,30,0.2), rgba(12,18,30,0.6)), url(${disaster.images[0]})`
+                              : "linear-gradient(135deg, rgba(0,103,126,0.55), rgba(0,210,253,0.4))",
+                          }}
+                        >
+                          <span className="event-badge">Assigned</span>
+                        </div>
+                        <div className="volunteer-disaster-body">
+                          <h3>{disaster.title || "Untitled Disaster"}</h3>
+                          <p>{disaster.location?.name || disaster.location?.address || "Location pending"}</p>
+                          <div className="volunteer-disaster-meta">
+                            <span>{disaster.type || "Other"}</span>
+                            <span>Status: {disaster.status || "Active"}</span>
+                          </div>
+                          <div className="volunteer-disaster-actions">
+                            <Link to={`/disasters/${disaster._id}`} className="btn-secondary">View Details</Link>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+
             {/* Recent Events Preview */}
             <div className="admin-panel page-card events-preview">
               <div className="section-header">
@@ -489,6 +598,72 @@ const VolunteerDashboard = () => {
                 ))}
               </div>
             )}
+          </>
+        )}
+
+        {activeTab === "disasters" && (
+          <>
+            <div className="admin-topbar page-card dashboard-header">
+              <div>
+                <span className="section-label">Active Deployments</span>
+                <h1>Live Disaster Assignments</h1>
+                <p>Review verified active disasters and assign yourself to response teams.</p>
+              </div>
+              <div className={`application-status ${volunteer.status}`}>
+                <span className="material-symbols-outlined">
+                  {volunteer.status === "approved"
+                    ? "check_circle"
+                    : volunteer.status === "rejected"
+                      ? "cancel"
+                      : "pending"}
+                </span>
+                <span>Application {volunteer.status}</span>
+              </div>
+            </div>
+
+            <div className="admin-panel page-card volunteer-disaster-panel">
+              {disasterLoading ? (
+                <div className="loading">Loading disasters...</div>
+              ) : activeDisasters.length === 0 ? (
+                <p className="empty-state">No active disasters available right now.</p>
+              ) : (
+                <div className="volunteer-disaster-grid">
+                  {activeDisasters.map((disaster) => (
+                    <article key={disaster._id} className="volunteer-disaster-card">
+                      <div
+                        className="volunteer-disaster-media"
+                        style={{
+                          backgroundImage: disaster.images?.[0]
+                            ? `linear-gradient(180deg, rgba(12,18,30,0.2), rgba(12,18,30,0.6)), url(${disaster.images[0]})`
+                            : "linear-gradient(135deg, rgba(0,103,126,0.55), rgba(0,210,253,0.4))",
+                        }}
+                      >
+                        <span className={`event-badge`}>{disaster.severityLevel || "Medium"}</span>
+                      </div>
+                      <div className="volunteer-disaster-body">
+                        <h3>{disaster.title || "Untitled Disaster"}</h3>
+                        <p>{disaster.location?.name || disaster.location?.address || "Location pending"}</p>
+                        <div className="volunteer-disaster-meta">
+                          <span>{disaster.type || "Other"}</span>
+                          <span>Status: {disaster.status || "Active"}</span>
+                        </div>
+                        <div className="volunteer-disaster-actions">
+                          <Link to={`/disasters/${disaster._id}`} className="btn-secondary">View Details</Link>
+                          <button
+                            type="button"
+                            className="btn-primary"
+                            onClick={() => handleAssign(disaster._id)}
+                            disabled={volunteer.status !== "approved"}
+                          >
+                            {volunteer.status === "approved" ? "Assign Me" : "Approval Required"}
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
           </>
         )}
 

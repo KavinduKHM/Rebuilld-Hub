@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import axios from "axios";
+import { getAuthSession } from "../../services/authSession";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -48,6 +50,7 @@ const DisasterDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const role = localStorage.getItem("role");
+  const [assigning, setAssigning] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -88,6 +91,44 @@ const DisasterDetails = () => {
     }
   };
 
+  const resolveVolunteerId = async () => {
+    const session = getAuthSession();
+    const directId = session?.user?.volunteerId || session?.user?._id;
+    if (directId) return directId;
+
+    const email = session?.user?.email;
+    if (!email) return null;
+
+    const response = await axios.get("http://localhost:5000/api/volunteers");
+    const rows = Array.isArray(response.data) ? response.data : response.data?.data || [];
+    const match = rows.find(
+      (item) => (item?.email || "").toLowerCase() === email.toLowerCase(),
+    );
+    return match?._id || match?.volunteerId || null;
+  };
+
+  const handleAssignSelf = async () => {
+    setAssigning(true);
+    try {
+      const volunteerId = await resolveVolunteerId();
+      if (!volunteerId) {
+        alert("Volunteer account not found. Please sign in again.");
+        return;
+      }
+
+      const session = getAuthSession();
+      await axios.post(`http://localhost:5000/api/disasters/${id}/assign-volunteer`, {
+        volunteerId,
+        volunteerEmail: session?.user?.email,
+      });
+      alert("You have been assigned to this disaster.");
+    } catch (err) {
+      alert(err?.response?.data?.message || "Unable to assign.");
+    } finally {
+      setAssigning(false);
+    }
+  };
+
   if (loading) return <Loader />;
   if (error) return <p className="empty-state">{error}</p>;
 
@@ -120,6 +161,16 @@ const DisasterDetails = () => {
           </div>
           <div className="detail-command-actions">
             <button type="button" className="btn-secondary">Request Intel</button>
+            {role === "volunteer" && (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleAssignSelf}
+                disabled={assigning}
+              >
+                {assigning ? "Assigning..." : "Assign Me"}
+              </button>
+            )}
             {role === "admin" && verificationStatus === "Pending" ? (
               <>
                 <button type="button" className="btn-danger" onClick={() => handleVerifyDisaster("Rejected")}>Reject</button>

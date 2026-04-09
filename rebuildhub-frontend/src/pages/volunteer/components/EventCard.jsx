@@ -203,7 +203,7 @@ const EventCard = ({ event, onInterest }) => {
         </button>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .event-card-component {
           padding: 20px;
           border-radius: 20px;

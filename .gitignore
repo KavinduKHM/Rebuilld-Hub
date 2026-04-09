@@ -1,2 +1,4 @@
 node_modules/
 .env
+Rebuildhub-backend/node_modules/.package-lock.json
+Rebuildhub-backend/node_modules/.package-lock.json

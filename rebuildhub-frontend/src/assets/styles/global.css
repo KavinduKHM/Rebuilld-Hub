@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,200..700,0..1,-50..200");
+
 :root {
   --bg-page: #f0f4ff;
   --bg-soft: #f7faff;
@@ -28,6 +30,23 @@ body {
   background-attachment: fixed;
   color: var(--ink-main);
   font-family: "Manrope", "Segoe UI", sans-serif;
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
 }
 
 body::before,
@@ -1130,6 +1149,7 @@ a {
   grid-template-columns: 230px minmax(0, 1fr);
   gap: 1rem;
   padding: 0.85rem;
+  align-items: start;
 }
 
 .tac-sidebar {
@@ -1140,6 +1160,9 @@ a {
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 1.1rem;
+  position: sticky;
+  top: 0.85rem;
+  height: calc(100vh - 1.7rem);
 }
 
 .tac-sidebar h1 {

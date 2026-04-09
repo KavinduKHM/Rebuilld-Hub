@@ -268,7 +268,7 @@ const EventsMap = ({ events, onEventSelect }) => {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .events-map-wrapper {
           background: white;
           border-radius: 24px;
