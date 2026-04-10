@@ -117,6 +117,7 @@ const AdminVolunteerManagement = () => {
           <Link to="/admin/dashboard" className="admin-nav-link">Disasters</Link>
           <Link to="/admin/volunteers" className="admin-nav-link admin-nav-link--active">Volunteers</Link>
           <Link to="/admin/resources" className="admin-nav-link">Resources</Link>
+          <Link to="/admin/donations" className="admin-nav-link">Donations</Link>
           <Link to="/admin/aid-requests" className="admin-nav-link">Aid Requests</Link>
         </nav>
 

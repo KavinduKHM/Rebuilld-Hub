@@ -7,6 +7,11 @@ import {
 } from 'lucide-react';
 
 const DonationFlow = ({ onClose }) => {
+  const MIN_DONATION_AMOUNT = 200;
+  const DONATION_STEP = 50;
+  const USD_MIN_DONATION_AMOUNT = 5;
+  const USD_DONATION_STEP = 10;
+
   const navigate = useNavigate();
   const [step, setStep] = useState('select');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,6 +66,14 @@ const DonationFlow = ({ onClose }) => {
     { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺', minAmount: 5 },
     { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧', minAmount: 5 },
   ];
+
+  const getAmountRules = (isInternational, currency) => {
+    if (isInternational && currency === 'USD') {
+      return { minAmount: USD_MIN_DONATION_AMOUNT, stepAmount: USD_DONATION_STEP };
+    }
+
+    return { minAmount: MIN_DONATION_AMOUNT, stepAmount: DONATION_STEP };
+  };
 
   // Check for payment return parameters - runs when component mounts and when URL changes
   useEffect(() => {
@@ -179,6 +192,11 @@ const DonationFlow = ({ onClose }) => {
     return pattern.test(email);
   };
 
+  const getEmailError = (email) => {
+    if (!email) return '';
+    return validateEmail(email) ? '' : 'Please enter a valid email';
+  };
+
   const validateQuantity = (quantity) => {
     const num = Number(quantity);
     if (isNaN(num) || num <= 0) return 'Quantity must be greater than 0';
@@ -188,8 +206,9 @@ const DonationFlow = ({ onClose }) => {
 
   const validateAmount = (amount, isInternational, currency) => {
     if (!amount || amount <= 0) return 'Please enter a valid amount';
-    const minAmount = isInternational ? (currencies.find(c => c.code === currency)?.minAmount || 5) : 100;
-    if (amount < minAmount) return `Minimum amount is ${currency === 'LKR' ? 'Rs' : '$'}${minAmount}`;
+    const { minAmount, stepAmount } = getAmountRules(isInternational, currency);
+    if (amount < minAmount) return `Minimum amount is ${minAmount}`;
+    if (Number(amount) % stepAmount !== 0) return `Amount should increase by ${stepAmount}`;
     return null;
   };
 
@@ -201,13 +220,17 @@ const DonationFlow = ({ onClose }) => {
       switch (fieldName) {
         case 'donorName': error = validateDonorName(stockForm.donorName); break;
         case 'donorNIC': error = validateNIC(stockForm.donorNIC, stockForm.isInternational); break;
+        case 'email': error = getEmailError(stockForm.email); break;
         case 'quantity': error = validateQuantity(stockForm.quantity); break;
+        default: error = null;
       }
     } else {
       switch (fieldName) {
         case 'donorName': error = validateDonorName(moneyForm.donorName); break;
         case 'donorNIC': error = validateNIC(moneyForm.donorNIC, moneyForm.isInternational); break;
+        case 'email': error = getEmailError(moneyForm.email); break;
         case 'amount': error = validateAmount(moneyForm.amount, moneyForm.isInternational, moneyForm.currency); break;
+        default: error = null;
       }
     }
     setErrors(prev => ({ ...prev, [fieldName]: error }));
@@ -216,12 +239,26 @@ const DonationFlow = ({ onClose }) => {
   const handleStockChange = (e) => {
     const { name, value } = e.target;
     setStockForm(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'email') {
+      setTouched(prev => ({ ...prev, email: true }));
+      setErrors(prev => ({ ...prev, email: getEmailError(value) }));
+      return;
+    }
+
     if (touched[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleMoneyChange = (e) => {
     const { name, value } = e.target;
     setMoneyForm(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'email') {
+      setTouched(prev => ({ ...prev, email: true }));
+      setErrors(prev => ({ ...prev, email: getEmailError(value) }));
+      return;
+    }
+
     if (touched[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
@@ -274,6 +311,11 @@ const DonationFlow = ({ onClose }) => {
     const rate = exchangeRates[fromCurrency];
     return rate ? Math.round(amount / rate) : amount;
   };
+
+  const amountRules = getAmountRules(moneyForm.isInternational, moneyForm.currency);
+  const suggestedAmounts = moneyForm.isInternational && moneyForm.currency === 'USD'
+    ? [10, 20, 50, 100]
+    : [200, 250, 500, 1000];
 
   const validateStockFormSubmit = () => {
     const newErrors = {};
@@ -537,15 +579,15 @@ const DonationFlow = ({ onClose }) => {
               </button>
             </div>
           </div>
-          <form onSubmit={handleStockSubmit} className="px-6 py-4">
+          <form onSubmit={handleStockSubmit} className="px-6 py-4 donation-modal__scroll">
             <div className="space-y-4">
               <div className="bg-blue-50/30 p-4 rounded-xl border border-blue-100">
                 <h4 className="text-sm font-semibold text-blue-900 mb-3">Donor Information</h4>
                 <div className="mb-3">
                   <label className="block text-sm font-medium text-blue-800 mb-2">Donor Type</label>
                   <div className="flex gap-3">
-                    <button type="button" onClick={() => handleInternationalToggle('stock', false)} className={`flex-1 py-2 px-3 rounded-lg border transition-all ${!stockForm.isInternational ? 'bg-blue-600 text-white' : 'bg-white border-blue-200 text-blue-700'}`}>🇱🇰 Sri Lankan</button>
-                    <button type="button" onClick={() => handleInternationalToggle('stock', true)} className={`flex-1 py-2 px-3 rounded-lg border transition-all ${stockForm.isInternational ? 'bg-blue-600 text-white' : 'bg-white border-blue-200 text-blue-700'}`}>🌍 International</button>
+                    <button type="button" onClick={() => handleInternationalToggle('stock', false)} className={`flex-1 py-2 px-3 rounded-lg border transition-all ${!stockForm.isInternational ? 'bg-blue-600 text-white' : 'bg-white border-blue-200 text-blue-700'}`}>Sri Lankan</button>
+                    <button type="button" onClick={() => handleInternationalToggle('stock', true)} className={`flex-1 py-2 px-3 rounded-lg border transition-all ${stockForm.isInternational ? 'bg-blue-600 text-white' : 'bg-white border-blue-200 text-blue-700'}`}>International</button>
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -561,7 +603,17 @@ const DonationFlow = ({ onClose }) => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-blue-800 mb-1">Email (Optional)</label>
-                    <input type="email" name="email" value={stockForm.email} onChange={handleStockChange} className="w-full px-3 py-2 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="your@email.com" />
+                    <input
+                      type="email"
+                      name="email"
+                      value={stockForm.email}
+                      onChange={handleStockChange}
+                      onBlur={() => handleFieldBlur('stock', 'email')}
+                      className={`w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none ${errors.email ? 'border-red-400' : 'border-blue-200'}`}
+                      placeholder="your@email.com"
+                      aria-invalid={Boolean(errors.email)}
+                    />
+                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                   </div>
                 </div>
               </div>
@@ -653,8 +705,8 @@ const DonationFlow = ({ onClose }) => {
               <div className="mb-3">
                 <label className="block text-sm font-medium text-green-800 mb-2">Donor Type</label>
                 <div className="flex gap-3">
-                  <button type="button" onClick={() => handleInternationalToggle('money', false)} className={`flex-1 py-2 px-3 rounded-lg border transition-all ${!moneyForm.isInternational ? 'bg-green-600 text-white' : 'bg-white border-green-200 text-green-700'}`}>🇱🇰 Sri Lankan</button>
-                  <button type="button" onClick={() => handleInternationalToggle('money', true)} className={`flex-1 py-2 px-3 rounded-lg border transition-all ${moneyForm.isInternational ? 'bg-green-600 text-white' : 'bg-white border-green-200 text-green-700'}`}>🌍 International</button>
+                  <button type="button" onClick={() => handleInternationalToggle('money', false)} className={`flex-1 py-2 px-3 rounded-lg border transition-all ${!moneyForm.isInternational ? 'bg-green-600 text-white' : 'bg-white border-green-200 text-green-700'}`}>Sri Lankan</button>
+                  <button type="button" onClick={() => handleInternationalToggle('money', true)} className={`flex-1 py-2 px-3 rounded-lg border transition-all ${moneyForm.isInternational ? 'bg-green-600 text-white' : 'bg-white border-green-200 text-green-700'}`}>International</button>
                 </div>
               </div>
               <div className="space-y-3">
@@ -670,7 +722,17 @@ const DonationFlow = ({ onClose }) => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-green-800 mb-1">Email (Optional)</label>
-                  <input type="email" name="email" value={moneyForm.email} onChange={handleMoneyChange} className="w-full px-3 py-2 bg-white border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none" placeholder="your@email.com" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={moneyForm.email}
+                    onChange={handleMoneyChange}
+                    onBlur={() => handleFieldBlur('money', 'email')}
+                    className={`w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-green-500 outline-none ${errors.email ? 'border-red-400' : 'border-green-200'}`}
+                    placeholder="your@email.com"
+                    aria-invalid={Boolean(errors.email)}
+                  />
+                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                 </div>
               </div>
             </div>
@@ -705,8 +767,23 @@ const DonationFlow = ({ onClose }) => {
             <div>
               <label className="block text-sm font-medium text-green-800 mb-1">Amount ({moneyForm.isInternational ? moneyForm.currency : 'LKR'}) *</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600">{moneyForm.isInternational ? (moneyForm.currency === 'USD' ? '$' : '€') : 'Rs'}</span>
-                <input type="number" name="amount" value={moneyForm.amount} onChange={handleMoneyChange} onBlur={() => handleFieldBlur('money', 'amount')} min={moneyForm.isInternational ? 5 : 100} step="100" className="w-full pl-10 pr-3 py-2 bg-white border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none" placeholder={`Minimum ${moneyForm.isInternational ? (moneyForm.currency === 'USD' ? '$5' : '€5') : 'Rs100'}`} />
+                <input type="number" name="amount" value={moneyForm.amount} onChange={handleMoneyChange} onBlur={() => handleFieldBlur('money', 'amount')} min={amountRules.minAmount} step={amountRules.stepAmount} className="w-full px-3 py-2 bg-white border border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none" placeholder={`Minimum ${amountRules.minAmount} (increments of ${amountRules.stepAmount})`} />
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {suggestedAmounts.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      setMoneyForm((prev) => ({ ...prev, amount: String(value) }));
+                      setTouched((prev) => ({ ...prev, amount: true }));
+                      setErrors((prev) => ({ ...prev, amount: validateAmount(value, moneyForm.isInternational, moneyForm.currency) }));
+                    }}
+                    className={`px-2.5 py-1.5 text-xs rounded-lg border transition-all ${String(moneyForm.amount) === String(value) ? 'bg-green-600 text-white border-green-600' : 'bg-white border-green-200 text-green-700 hover:border-green-400'}`}
+                  >
+                    {moneyForm.isInternational && moneyForm.currency === 'USD' ? `$${value}` : value}
+                  </button>
+                ))}
               </div>
               {errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}
               {moneyForm.isInternational && moneyForm.amount > 0 && moneyForm.currency !== 'LKR' && (
