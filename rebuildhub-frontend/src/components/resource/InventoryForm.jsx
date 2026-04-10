@@ -71,7 +71,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
       const moneyAmount = Number(formData.totalAmount);
       if (!Number.isInteger(moneyAmount)) {
         newErrors.totalAmount = 'Amount must be a whole number (no decimals)';
-      } else if (moneyAmount <= 0) {
+      } else if (moneyAmount < 0) {
         newErrors.totalAmount = 'Amount must be greater than 0';
       }
     }
