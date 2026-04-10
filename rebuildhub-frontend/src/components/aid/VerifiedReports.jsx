@@ -68,12 +68,29 @@ const VerifiedReports = () => {
 	return (
 		<div className="page-shell">
 			<div className="container" style={{ maxWidth: "1360px" }}>
-				<div className="page-header" style={{ marginBottom: "1.8rem" }}>
-					<div>
+				<div
+					className="page-card page-header"
+					style={{
+						marginBottom: "1.8rem",
+						padding: "1.35rem 1.4rem",
+						border: "1px solid rgba(191, 219, 254, 0.72)",
+						background: "linear-gradient(180deg, rgba(248, 251, 255, 0.98), rgba(242, 246, 255, 0.92))",
+						boxShadow: "0 8px 26px rgba(17, 40, 81, 0.08)",
+					}}
+				>
+					<div style={{ maxWidth: "1180px" }}>
 						<span className="section-label" style={{ color: "#192bc2", fontSize: "0.8rem"}}>Aid Registry</span>
-						<h2 className="page-title" fontSize="1.25rem">
-							<span className="material-symbols-outlined" style={{ marginRight: "0.35rem" }}>verified</span>
-							Verified Disaster Evidence & Requests Submit
+						<h2
+							className="page-title"
+							style={{
+								fontSize: "1.8rem",
+								lineHeight: 1.1,
+								color: "#0530AD"
+							}}
+						>
+							<span className="material-symbols-outlined" style={{ marginRight: "0.35rem", fontSize: "1.9rem" }}>verified</span>
+
+							Verified Disasters
 						</h2>
 						<p className="page-subtitle" style={{ color: "#5e78aa", maxWidth: "1480px" }}>
 							Choose a verified disaster and continue to the aid request form. Our ground teams have confirmed the following events as eligible for expedited relief.
@@ -176,7 +193,7 @@ const VerifiedReports = () => {
 									</div>
 								)}
 
-								<h2 style={{ margin: 0, fontSize: "1.8rem", letterSpacing: "-0.03em" }}>
+								<h2 style={{ margin: 0, fontSize: "1.25rem", letterSpacing: "-0.03em" }}>
 									{cleanText(disaster.title) || "Untitled Disaster"}
 								</h2>
 

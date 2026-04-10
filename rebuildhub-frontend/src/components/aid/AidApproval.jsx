@@ -13,23 +13,24 @@ import {
 	MdOutlineRefresh,
 	MdPending,
 } from "react-icons/md";
-import { FaFirstAid, FaHandsHelping, FaHome, FaTint, FaTshirt, FaUtensils } from "react-icons/fa";
+import { FaFirstAid, FaHandsHelping, FaTshirt, FaUtensils, FaMoneyBillWave } from "react-icons/fa";
 import {
 	getAllAids,
 	updateAidAdminDecision,
 	updateAidDistributionStatus,
 } from "../../services/aidService";
+import resourceService from "../../services/resourceService";
 
 const asText = (value) => (value ?? "").toString().trim();
 const distributionOptions = ["PENDING", "IN_PROGRESS", "COMPLETED"];
+const districtWatchlist = ["Colombo", "Gampaha", "Kalutara", "Kandy", "Galle", "Matara", "Jaffna", "Trincomalee"];
 
 const getAidIcon = (aidType) => {
 	const normalized = asText(aidType).toUpperCase();
 	if (normalized === "FOOD") return <FaUtensils />;
-	if (normalized === "WATER") return <FaTint />;
-	if (normalized === "MEDICINE") return <FaFirstAid />;
-	if (normalized === "SHELTER") return <FaHome />;
-	if (normalized === "CLOTHING") return <FaTshirt />;
+	if (normalized === "CLOTH") return <FaTshirt />;
+	if (normalized === "SANITORY") return <FaFirstAid />;
+	if (normalized === "MONEY") return <FaMoneyBillWave />;
 	return <FaHandsHelping />;
 };
 
@@ -58,6 +59,42 @@ const getDistributionTone = (distributionStatus) => {
 const isCompletedRequest = (aid) =>
 	aid?.distributionStatus === "COMPLETED" && aid?.adminStatus === "APPROVED";
 
+const getDistrictLoadTone = (activeCount) => {
+	if (activeCount >= 5) {
+		return {
+			label: "Critical Overload",
+			color: "#b4232d",
+			background: "rgba(220, 38, 38, 0.16)",
+			border: "1px solid rgba(220, 38, 38, 0.35)",
+		};
+	}
+
+	if (activeCount >= 3) {
+		return {
+			label: "High Demand",
+			color: "#b86d06",
+			background: "rgba(245, 158, 11, 0.16)",
+			border: "1px solid rgba(245, 158, 11, 0.36)",
+		};
+	}
+
+	if (activeCount >= 1) {
+		return {
+			label: "Stable",
+			color: "#18794e",
+			background: "rgba(22, 163, 74, 0.16)",
+			border: "1px solid rgba(22, 163, 74, 0.34)",
+		};
+	}
+
+	return {
+		label: "No Active Requests",
+		color: "#64748b",
+		background: "rgba(100, 116, 139, 0.14)",
+		border: "1px solid rgba(100, 116, 139, 0.3)",
+	};
+};
+
 const AidApproval = () => {
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
@@ -65,9 +102,16 @@ const AidApproval = () => {
 	const [aids, setAids] = useState([]);
 	const [updatingId, setUpdatingId] = useState("");
 	const [distributionDraft, setDistributionDraft] = useState({});
+	const [inventoryTotals, setInventoryTotals] = useState({
+		Food: 0,
+		Cloth: 0,
+		Sanitory: 0,
+		Money: 0,
+	});
 
 	useEffect(() => {
 		fetchAids();
+		fetchInventoryTotals();
 	}, []);
 
 	const fetchAids = async () => {
@@ -89,13 +133,38 @@ const AidApproval = () => {
 		navigate("/", { replace: true });
 	};
 
+	const fetchInventoryTotals = async () => {
+		try {
+			const inventory = await resourceService.getAllInventory();
+			const totals = inventory.reduce(
+				(acc, item) => {
+					if (item.type === "MONEY") {
+						acc.Money += Number(item.totalAmount || 0);
+						return acc;
+					}
+
+					if (item.type === "STOCK" && acc[item.category] !== undefined) {
+						acc[item.category] += Number(item.totalQuantity || 0);
+					}
+
+					return acc;
+				},
+				{ Food: 0, Cloth: 0, Sanitory: 0, Money: 0 }
+			);
+
+			setInventoryTotals(totals);
+		} catch (err) {
+			// Keep existing totals when inventory API fails.
+		}
+	};
+
 	const handleAdminDecision = async (id, decision) => {
 		setUpdatingId(id);
 		setError("");
 
 		try {
 			await updateAidAdminDecision(id, decision);
-			await fetchAids();
+			await Promise.all([fetchAids(), fetchInventoryTotals()]);
 		} catch (err) {
 			setError(err.response?.data?.message || "Unable to update admin decision.");
 		} finally {
@@ -104,6 +173,10 @@ const AidApproval = () => {
 	};
 
 	const handleDistributionSave = async (aid) => {
+		if (asText(aid.adminStatus).toUpperCase() !== "APPROVED") {
+			return;
+		}
+
 		const selectedStatus = distributionDraft[aid._id] || aid.distributionStatus || "PENDING";
 		setUpdatingId(aid._id);
 		setError("");
@@ -121,6 +194,34 @@ const AidApproval = () => {
 	const activeAids = aids.filter((aid) => !isCompletedRequest(aid));
 	const completedCount = aids.length - activeAids.length;
 	const pendingCount = activeAids.filter((item) => item.adminStatus === "PENDING").length;
+	const operationalAids = aids.filter(
+		(aid) =>
+			asText(aid.adminStatus).toUpperCase() !== "REJECTED" &&
+			asText(aid.distributionStatus).toUpperCase() !== "COMPLETED"
+	);
+	const districtDemandCounts = operationalAids.reduce((acc, aid) => {
+		const district = asText(aid.location?.district);
+		if (!district) {
+			return acc;
+		}
+
+		acc[district] = (acc[district] || 0) + 1;
+		return acc;
+	}, {});
+	const districtNames = Array.from(
+		new Set([
+			...districtWatchlist,
+			...operationalAids.map((aid) => asText(aid.location?.district)).filter(Boolean),
+		])
+	);
+	const districtStatusItems = districtNames.map((district) => {
+		const activeCount = districtDemandCounts[district] || 0;
+		return {
+			district,
+			activeCount,
+			tone: getDistrictLoadTone(activeCount),
+		};
+	});
 
 	return (
 		<div className="tac-shell">
@@ -155,7 +256,7 @@ const AidApproval = () => {
 					}}
 				>
 					<div style={{ maxWidth: "620px" }}>
-						<h1 className="page-title" style={{ marginBottom: "0.25rem", fontSize: "clamp(2.2rem, 3.2vw, 3.35rem)", lineHeight: 1.02 }}><GiFirstAidKit />  Aid Requests</h1>
+						<h1 className="page-title" style={{ marginBottom: "0.25rem", fontSize: "clamp(2.2rem, 2vw, 3.35rem)", lineHeight: 1.02 }}><GiFirstAidKit />  Aid Requests</h1>
 						<p className="page-subtitle" style={{ maxWidth: "560px", color: "#415a88", lineHeight: 1.45 }}>
 							Requests submitted by users from the Aid Request form.
 							 Triage and coordinate rapid response protocols.
@@ -177,18 +278,71 @@ const AidApproval = () => {
 					>
 						<div style={{ textAlign: "center", padding: "0.45rem 0.2rem", borderRight: "1px solid rgba(191, 219, 254, 0.72)" }}>
 							<p style={{ margin: 0, fontSize: "0.62rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#2b63c9" }}>Active</p>
-							<strong style={{ fontSize: "2rem", lineHeight: 1.05, color: "#142d59" }}>{activeAids.length}</strong>
+							<strong style={{ fontSize: "2rem", lineHeight: 1.05, color: "#2b63c9" }}>{activeAids.length}</strong>
 						</div>
 						<div style={{ textAlign: "center", padding: "0.45rem 0.2rem", borderRight: "1px solid rgba(191, 219, 254, 0.72)" }}>
 							<p style={{ margin: 0, fontSize: "0.62rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#7b8eb8" }}>Completed</p>
-							<strong style={{ fontSize: "2rem", lineHeight: 1.05, color: "#142d59" }}>{completedCount}</strong>
+							<strong style={{ fontSize: "2rem", lineHeight: 1.05, color: "#7b8eb8" }}>{completedCount}</strong>
 						</div>
 						<div style={{ textAlign: "center", padding: "0.45rem 0.2rem" }}>
 							<p style={{ margin: 0, fontSize: "0.62rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#d04146" }}>Pending</p>
-							<strong style={{ fontSize: "2rem", lineHeight: 1.05, color: "#142d59" }}>{pendingCount}</strong>
+							<strong style={{ fontSize: "2rem", lineHeight: 1.05, color: "#d04146" }}>{pendingCount}</strong>
 						</div>
 					</div>
 				</header>
+
+				<div className="page-card" style={{ padding: "1rem", marginTop: "0.95rem" }}>
+					<h3 style={{ marginBottom: "0.85rem" }}>Inventory By Category</h3>
+					<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "0.62rem" }}>
+						{[
+							{ key: "Food", label: "Food", value: inventoryTotals.Food, suffix: "units", tone: "#1f5fd2", icon: <FaUtensils /> },
+							{ key: "Cloth", label: "Cloth", value: inventoryTotals.Cloth, suffix: "units", tone: "#5e78aa", icon: <FaTshirt /> },
+							{ key: "Sanitory", label: "Sanitory", value: inventoryTotals.Sanitory, suffix: "units", tone: "#0f56cc", icon: <FaFirstAid /> },
+							{ key: "Money", label: "Money / Donations", value: inventoryTotals.Money, suffix: "LKR", tone: "#18794e", icon: <FaMoneyBillWave /> },
+						].map((item) => (
+							<div
+								key={item.key}
+								style={{
+									display: "grid",
+									gridTemplateColumns: "auto 1fr",
+									alignItems: "center",
+									columnGap: "0.65rem",
+									padding: "0.58rem 0.72rem",
+									borderRadius: "10px",
+									background: "rgba(237, 245, 255, 0.9)",
+									border: "1px solid rgba(191, 219, 254, 0.72)",
+								}}
+							>
+								<span
+									style={{
+										width: "2rem",
+										height: "2rem",
+										borderRadius: "10px",
+										display: "inline-flex",
+										alignItems: "center",
+										justifyContent: "center",
+										color: item.tone,
+										background: "rgba(255, 255, 255, 0.9)",
+										border: "1px solid rgba(191, 219, 254, 0.9)",
+									}}
+								>
+									{item.icon}
+								</span>
+								<div style={{ display: "grid", gap: "0.12rem" }}>
+									<p style={{ margin: 0, color: "#4a6797", fontWeight: 700, fontSize: "0.82rem" }}>{item.label}</p>
+									<strong style={{ color: item.tone, fontSize: "0.9rem" }}>
+										{item.suffix === "LKR"
+											? `LKR ${Number(item.value || 0).toLocaleString()}`
+											: `${Number(item.value || 0).toLocaleString()} ${item.suffix}`}
+									</strong>
+								</div>
+							</div>
+						))}
+					</div>
+					<p style={{ marginTop: "0.8rem", color: "#6f84b0", fontSize: "0.79rem" }}>
+						Totals update automatically after each admin approval.
+					</p>
+				</div>
 
 				<section className="admin-workspace">
 					<div className="admin-panel page-card">
@@ -205,7 +359,7 @@ const AidApproval = () => {
 										display: "inline-flex",
 										alignItems: "center",
 										gap: "0.35rem",
-										background: "linear-gradient(135deg, #028A0F , #3CB043   )",
+										background: "linear-gradient(135deg, #028A0F , #23d02e   )",
 										color: "#ffffff",
 										border: "0px solid rgb(53, 94, 59)",
 										boxShadow: "0 0px 3px rgb(53, 94, 59)",
@@ -255,7 +409,9 @@ const AidApproval = () => {
 											</div>
 
 											<h3 style={{ marginTop: "0.7rem", marginBottom: "0.25rem", letterSpacing: "-0.02em" }}>{asText(aid.aidType) || "Aid Type"}</h3>
-											<p style={{ color: "#1b56cb", fontWeight: 700, marginBottom: "0.6rem" }}>Quantity: {aid.quantity ?? "-"} Units</p>
+											<p style={{ color: "#1b56cb", fontWeight: 700, marginBottom: "0.6rem" }}>
+												Quantity: {aid.quantity ?? "-"} {aid.quantityUnit === "RUPEES" || asText(aid.aidType).toUpperCase() === "MONEY" ? "LKR" : "Units"}
+											</p>
 
 											<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.8rem", borderTop: "1px solid rgba(191, 219, 254, 0.55)", borderBottom: "1px solid rgba(191, 219, 254, 0.55)", padding: "0.7rem 0", marginBottom: "0.8rem" }}>
 												<div>
@@ -276,24 +432,50 @@ const AidApproval = () => {
 											<p style={{ marginBottom: "0.6rem", fontSize: "0.75rem", color: "#8ca1c8" }}>ID: {asText(aid.damageReportId) || "-"}</p>
 										</div>
 										<div className="admin-verification-actions" style={{ gap: "0.55rem" }}>
-											<button
-												type="button"
-												className="btn-primary"
-												style={{ minWidth: "102px", color: "#fff", background: "linear-gradient(135deg, #1f78d1 , #2563eb   )" }}
-												onClick={() => handleAdminDecision(aid._id, "APPROVED")}
-												disabled={updatingId === aid._id}
-											>
-												{updatingId === aid._id ? "Saving..." : "Approve"}
-											</button>
-											<button
-												type="button"
-												className="btn-danger"
-												style={{ minWidth: "94px", color: "#fff", background: "linear-gradient(135deg, #dc2626 , #ef4444  )" }}
-												onClick={() => handleAdminDecision(aid._id, "REJECTED")}
-												disabled={updatingId === aid._id}
-											>
-												{updatingId === aid._id ? "Saving..." : "Reject"}
-											</button>
+												{asText(aid.adminStatus).toUpperCase() !== "REJECTED" && (
+													<button
+														type="button"
+														className="btn-primary"
+														style={{
+															minWidth: "102px",
+															color: "#fff",
+															background:
+																asText(aid.adminStatus).toUpperCase() === "APPROVED"
+																	? "linear-gradient(135deg, #50cd90, #26c281)"
+																	: "linear-gradient(135deg, #1f78d1 , #2563eb   )",
+														}}
+														onClick={() => handleAdminDecision(aid._id, "APPROVED")}
+														disabled={updatingId === aid._id || asText(aid.adminStatus).toUpperCase() === "APPROVED"}
+													>
+														{asText(aid.adminStatus).toUpperCase() === "APPROVED"
+															? "Approved"
+															: updatingId === aid._id
+																? "Saving..."
+																: "Approve"}
+													</button>
+												)}
+											{asText(aid.adminStatus).toUpperCase() !== "APPROVED" && (
+												<button
+													type="button"
+													className="btn-danger"
+													style={{
+														minWidth: "94px",
+														color: "#fff",
+														background:
+															asText(aid.adminStatus).toUpperCase() === "REJECTED"
+																? "linear-gradient(135deg, #ea8282, #f36d6d)"
+																: "linear-gradient(135deg, #dc2626 , #ef4444  )",
+													}}
+													onClick={() => handleAdminDecision(aid._id, "REJECTED")}
+													disabled={updatingId === aid._id || asText(aid.adminStatus).toUpperCase() === "REJECTED"}
+												>
+													{asText(aid.adminStatus).toUpperCase() === "REJECTED"
+														? "Rejected"
+														: updatingId === aid._id
+															? "Saving..."
+															: "Reject"}
+												</button>
+											)}
 											<select
 												value={distributionDraft[aid._id] || aid.distributionStatus || "PENDING"}
 												onChange={(event) =>
@@ -302,7 +484,7 @@ const AidApproval = () => {
 														[aid._id]: event.target.value,
 													}))
 												}
-												disabled={updatingId === aid._id}
+													disabled={updatingId === aid._id || asText(aid.adminStatus).toUpperCase() !== "APPROVED"}
 												style={{ minWidth: "166px", borderRadius: "10px", padding: "0.62rem 0.7rem" }}
 											>
 												{distributionOptions.map((status) => (
@@ -314,9 +496,9 @@ const AidApproval = () => {
 												className="btn-secondary"
 												style={{ minWidth: "164px", display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
 												onClick={() => handleDistributionSave(aid)}
-												disabled={updatingId === aid._id}
+													disabled={updatingId === aid._id || asText(aid.adminStatus).toUpperCase() !== "APPROVED"}
 											>
-												<MdLocalShipping /> {updatingId === aid._id ? "Saving..." : "Update Distribution"}
+													<MdLocalShipping /> {asText(aid.adminStatus).toUpperCase() === "REJECTED" ? "Rejected" : asText(aid.adminStatus).toUpperCase() !== "APPROVED" ? "Approve First" : updatingId === aid._id ? "Saving..." : "Update Distribution"}
 											</button>
 										</div>
 									</article>
@@ -325,23 +507,83 @@ const AidApproval = () => {
 						)}
 
 						<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem", marginTop: "1.05rem" }}>
-							<div className="page-card" style={{ padding: "0", overflow: "hidden" }}>
-								<div
-									style={{
-										height: "210px",
-										background:
-											"linear-gradient(130deg, rgba(8,37,79,0.92), rgba(17,80,150,0.84)), radial-gradient(circle at 70% 65%, rgba(98,175,255,0.45), transparent 35%), radial-gradient(circle at 35% 25%, rgba(255,255,255,0.18), transparent 42%)",
-										position: "relative",
-									}}
-								>
-									<div style={{ position: "absolute", left: "0.8rem", bottom: "0.8rem", color: "#dbeaff", fontSize: "0.76rem", letterSpacing: "0.07em", textTransform: "uppercase", background: "rgba(255,255,255,0.14)", padding: "0.45rem 0.65rem", borderRadius: "999px" }}>
-										Operational View: Active Districts
-									</div>
+							<div className="page-card" style={{ padding: "1rem", background: "rgba(237, 245, 255, 0.92)", border: "1px solid rgba(191, 219, 254, 0.72)" }}>
+								<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.8rem", marginBottom: "0.75rem" }}>
+									<h3 style={{ margin: 0 }}>Operational View: Active Districts</h3>
+									<span style={{ fontSize: "0.75rem", color: "#6d82ae" }}>Live by active aid requests</span>
+								</div>
+
+								<div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.8rem" }}>
+									{[
+										{ label: "Critical Overload", color: "#b4232d", background: "rgba(220, 38, 38, 0.16)", border: "1px solid rgba(220, 38, 38, 0.35)" },
+										{ label: "High Demand", color: "#b86d06", background: "rgba(245, 158, 11, 0.16)", border: "1px solid rgba(245, 158, 11, 0.36)" },
+										{ label: "Stable", color: "#18794e", background: "rgba(22, 163, 74, 0.16)", border: "1px solid rgba(22, 163, 74, 0.34)" },
+										{ label: "No Active Requests", color: "#64748b", background: "rgba(100, 116, 139, 0.14)", border: "1px solid rgba(100, 116, 139, 0.3)" },
+									].map((item) => (
+										<span
+											key={item.label}
+											style={{
+												display: "inline-flex",
+												alignItems: "center",
+												gap: "0.34rem",
+												padding: "0.22rem 0.54rem",
+												borderRadius: "999px",
+												fontSize: "0.66rem",
+												fontWeight: 700,
+												color: item.color,
+												background: item.background,
+												border: item.border,
+											}}
+										>
+											<span style={{ width: "0.46rem", height: "0.46rem", borderRadius: "999px", background: item.color }} />
+											{item.label}
+										</span>
+									))}
+								</div>
+
+								<div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(130px, 1fr))", gap: "0.58rem" }}>
+									{districtStatusItems.map((item) => (
+										<div
+											key={item.district}
+											style={{
+												borderRadius: "10px",
+												padding: "0.5rem 0.58rem",
+												background: item.tone.background,
+												border: item.tone.border,
+												display: "grid",
+												gap: "0.15rem",
+											}}
+										>
+											<p style={{ margin: 0, fontSize: "0.76rem", fontWeight: 800, color: "#1f3157", letterSpacing: "0.01em" }}>{item.district}</p>
+											<p style={{ margin: 0, fontSize: "0.68rem", fontWeight: 700, color: item.tone.color }}>{item.tone.label}</p>
+											<p style={{ margin: 0, fontSize: "0.64rem", color: "#516b99" }}>Active requests: {item.activeCount}</p>
+										</div>
+									))}
 								</div>
 							</div>
 
 							<div className="page-card" style={{ padding: "1rem" }}>
 								<h3 style={{ marginBottom: "0.85rem" }}>Response Velocity</h3>
+								<div
+									style={{
+										border: "1px solid rgba(191, 219, 254, 0.72)",
+										borderRadius: "12px",
+										overflow: "hidden",
+										marginBottom: "0.9rem",
+										background: "#eaf1ff",
+									}}
+								>
+									<div style={{ padding: "0.5rem 0.65rem", fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.07em", color: "#2a4f9d", background: "rgba(37, 99, 235, 0.1)" }}>
+										Live Coordination Map
+									</div>
+									<iframe
+										title="Sri Lanka coordination map"
+										src="https://maps.google.com/maps?q=Sri%20Lanka&z=7&output=embed"
+										style={{ width: "100%", height: "170px", border: 0 }}
+										loading="lazy"
+										referrerPolicy="no-referrer-when-downgrade"
+									/>
+								</div>
 								<div style={{ marginBottom: "0.7rem" }}>
 									<div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "#5f79ab", marginBottom: "0.3rem" }}>
 										<span>Triage Time</span>
@@ -366,6 +608,7 @@ const AidApproval = () => {
 									System performance is within optimal response parameters for current active disaster zones.
 								</p>
 							</div>
+
 						</div>
 					</div>
 				</section>
