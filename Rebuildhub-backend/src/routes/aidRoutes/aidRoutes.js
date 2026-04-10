@@ -4,8 +4,11 @@ const aidController = require("../../controllers/aidController/aidController");
 const authMiddleware = require("../../middlewares/authMiddleware");
 const roleMiddleware = require("../../middlewares/roleMiddleware");
 
-// Create aid: public (any user, including unauthenticated)
-router.post("/", aidController.createAid);
+// Create aid: public (no auth required)
+router.post(
+    "/",
+    aidController.createAid
+);
 
 // Get all aids: any authenticated user
 router.get(
