@@ -18,6 +18,7 @@ import AdminLoginPage from "./pages/admin/AdminLoginPage.jsx";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage.jsx";
 import InventoryManagerDashboardPage from "./pages/admin/InventoryManagerDashboardPage.jsx";
 import ResourceManagementPage from "./pages/resource/ResourceManagementPage.jsx";
+import AdminDonationsPage from "./pages/resource/AdminDonationsPage.jsx";
 import ResourcePage from "./pages/resource/ResourcePage.jsx";
 import DonationSuccess from "./pages/resource/DonationSuccess.jsx";
 import DonationForm from "./components/resource/DonationForm.jsx";
@@ -72,6 +73,14 @@ const AppShell = () => {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <ResourceManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/donations"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminDonationsPage />
             </ProtectedRoute>
           }
         />

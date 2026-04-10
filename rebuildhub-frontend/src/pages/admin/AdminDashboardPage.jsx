@@ -280,6 +280,7 @@ const AdminDashboardPage = () => {
           <a href="#disasters" className="admin-nav-link admin-nav-link--active">Disasters</a>
           <Link to="/admin/volunteers" className="admin-nav-link">Volunteers</Link>
           <Link to="/admin/resources" className="admin-nav-link">Resources</Link>
+          <Link to="/admin/donations" className="admin-nav-link">Donations</Link>
           <Link to="/admin/aid-requests" className="admin-nav-link">Aid Requests</Link>
         </nav>
 

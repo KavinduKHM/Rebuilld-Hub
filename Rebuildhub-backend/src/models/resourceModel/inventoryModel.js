@@ -8,7 +8,21 @@ const inventorySchema = new mongoose.Schema(
 
     category: {
   type: String,
-  enum: ["Food", "Cloth", "Sanitory"],
+  enum: [
+    "Food",
+    "Cloth",
+    "Sanitory",
+    "Clothing - Child",
+    "Clothing - Adult",
+    "Clothing - Male",
+    "Clothing - Female",
+    "Sanitary Items",
+    "Medicines",
+    "Water & Beverages",
+    "Shelter Supplies",
+    "Baby Care",
+    "Other Essentials"
+  ],
   required: function () {
     return this.type === "STOCK"; // Only required for STOCK
   },
@@ -31,11 +45,11 @@ unit: {
 
     status: {
       type: String,
-      enum: ["Available", "Low Stock", "Out of Stock"],
+      enum: ["Available", "Low Stock", "Out of Stock", "Low Amount", "Not available"],
       default: "Available",
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Inventory", inventorySchema);
+module.exports = mongoose.models.Inventory || mongoose.model("Inventory", inventorySchema);

@@ -1,4 +1,4 @@
-const Inventory = require("../../models/resourceModel/InventoryModel");
+const Inventory = require("../../models/resourceModel/inventoryModel");
 
 // -----------------------------
 // Generate Inventory Code
@@ -25,8 +25,8 @@ const updateStatus = (inventory) => {
   }
 
   if (inventory.type === "MONEY") {
-    if (inventory.totalAmount === 0) inventory.status = "Not available";
-    else if (inventory.totalAmount < 1000) inventory.status = "Low Amount";
+    if (inventory.totalAmount === 0) inventory.status = "Out of Stock";
+    else if (inventory.totalAmount < 500) inventory.status = "Low Stock";
     else inventory.status = "Available";
   }
 };

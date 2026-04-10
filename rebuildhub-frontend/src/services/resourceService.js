@@ -143,18 +143,13 @@ const resourceService = {
 
   // Get category distribution
   getCategoryDistribution: (inventory) => {
-    const categories = {
-      Food: 0,
-      Cloth: 0,
-      Sanitory: 0,
-      Money: 0
-    };
+    const categories = {};
 
     inventory.forEach(item => {
       if (item.type === 'MONEY') {
-        categories.Money += item.totalAmount || 0;
+        categories.Money = (categories.Money || 0) + (item.totalAmount || 0);
       } else if (item.category) {
-        categories[item.category] += item.totalQuantity || 0;
+        categories[item.category] = (categories[item.category] || 0) + (item.totalQuantity || 0);
       }
     });
 

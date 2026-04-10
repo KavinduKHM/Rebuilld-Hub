@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, RefreshCw, DollarSign, Package, Trash2 } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { useResource } from '../../context/ResourceContext';
 import { useAuth } from '../../context/AuthContext';
 import { clearAuthSession } from '../../services/authSession';
@@ -8,8 +8,20 @@ import InventoryTable from '../../components/resource/InventoryTable';
 import InventoryForm from '../../components/resource/InventoryForm';
 import StatisticsCards from '../../components/resource/StatisticsCards';
 import LowStockAlert from '../../components/resource/LowStockAlert';
-import ResourceCharts from '../../components/resource/ResourceCharts';
+import InventoryAnalyticsCharts from '../../components/resource/InventoryAnalyticsCharts';
 import "./ResourcePage.css";
+
+const themedHeaderStyle = {
+  background: 'linear-gradient(180deg, rgba(248, 251, 255, 0.96), rgba(239, 245, 255, 0.92))',
+  border: '1px solid rgba(191, 219, 254, 0.72)',
+  boxShadow: '0 16px 36px rgba(147, 197, 253, 0.24)'
+};
+
+const themedPanelStyle = {
+  background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 255, 0.92))',
+  border: '1px solid rgba(191, 219, 254, 0.72)',
+  boxShadow: '0 14px 30px rgba(147, 197, 253, 0.2)'
+};
 
 const ResourceManagementPage = () => {
   const navigate = useNavigate();
@@ -18,22 +30,19 @@ const ResourceManagementPage = () => {
     inventory,
     donations,
     stats,
-    lowStockItems,
     loading,
     error,
     fetchInventory,
     fetchDonations,
     createInventory,
     updateInventory,
-    deleteInventory,
-    deleteDonation
+    deleteInventory
   } = useResource();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [activeDonationTable, setActiveDonationTable] = useState('MONEY');
-  const [showFullLedger, setShowFullLedger] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Check if user is admin
   const role = user?.role || localStorage.getItem('role');
@@ -44,6 +53,12 @@ const ResourceManagementPage = () => {
       return;
     }
   }, [isAdmin]);
+
+  useEffect(() => {
+    if (!successMessage) return;
+    const timer = setTimeout(() => setSuccessMessage(''), 3000);
+    return () => clearTimeout(timer);
+  }, [successMessage]);
 
   const handleLogout = () => {
     clearAuthSession();
@@ -69,6 +84,7 @@ const ResourceManagementPage = () => {
     if (window.confirm(`Are you sure you want to delete "${item.name}"? This action cannot be undone.`)) {
       try {
         await deleteInventory(item._id);
+        setSuccessMessage(`Inventory item "${item.name || 'Item'}" deleted successfully.`);
       } catch (err) {
         alert('Failed to delete item: ' + err.message);
       }
@@ -87,32 +103,19 @@ const ResourceManagementPage = () => {
     }
   };
 
-  const handleDeleteDonation = async (id) => {
-    if (window.confirm('Are you sure you want to delete this donation record?')) {
-      try {
-        await deleteDonation(id);
-      } catch (err) {
-        alert('Failed to delete donation: ' + err.message);
-      }
-    }
-  };
+  const quickInsights = useMemo(() => ({
+    stockItems: inventory?.filter((item) => item.type === 'STOCK').length || 0,
+    totalFunds: inventory?.filter((item) => item.type === 'MONEY').reduce((sum, item) => sum + (item.totalAmount || 0), 0) || 0,
+    criticalItems: inventory?.filter((item) => item.status === 'Low Stock' || item.status === 'Out of Stock').length || 0,
+    totalItems: inventory?.length || 0
+  }), [inventory]);
 
-  const moneyDonations = useMemo(
-    () => (donations || []).filter((donation) => donation.type === 'MONEY'),
-    [donations]
+  const criticalAlertItems = useMemo(
+    () => (inventory || []).filter(
+      (item) => item.status === 'Low Stock' || item.status === 'Out of Stock'
+    ),
+    [inventory]
   );
-
-  const stockDonations = useMemo(
-    () => (donations || []).filter((donation) => donation.type === 'STOCK'),
-    [donations]
-  );
-
-  const recentDonations = useMemo(() => {
-    const sorted = [...(donations || [])].sort(
-      (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-    );
-    return sorted.slice(0, 3);
-  }, [donations]);
 
   const formatDateTime = (value) => {
     if (!value) return 'Unknown';
@@ -144,6 +147,7 @@ const ResourceManagementPage = () => {
           <Link to="/admin/dashboard" className="admin-nav-link">Disasters</Link>
           <Link to="/admin/volunteers" className="admin-nav-link">Volunteers</Link>
           <Link to="/admin/resources" className="admin-nav-link admin-nav-link--active">Resources</Link>
+          <Link to="/admin/donations" className="admin-nav-link">Donations</Link>
           <Link to="/admin/aid-requests" className="admin-nav-link">Aid Requests</Link>
         </nav>
 
@@ -156,33 +160,75 @@ const ResourceManagementPage = () => {
         <div className="page-shell resource-shell">
           <div className="container container--wide resource-shell__inner">
             {/* Header */}
-            <div className="page-card resource-hero">
+            <div className="page-card resource-hero" style={themedHeaderStyle}>
               <div className="page-header">
                 <div>
                   <span className="section-label">Resource Command</span>
                   <h1 className="page-title">Resource & Inventory Management</h1>
                   <p className="page-subtitle">Manage disaster relief resources, track inventory, and monitor donations.</p>
                 </div>
-                <div className="resource-hero__actions">
-                  <button
-                    type="button"
-                    onClick={handleRefresh}
-                    className="btn-secondary"
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
+                  <div className="resource-hero__actions">
+                    <button
+                      type="button"
+                      onClick={handleRefresh}
+                      className="btn-secondary"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Refresh
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddItem}
+                      className="btn-primary"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Inventory Item
+                    </button>
+                  </div>
+
+                  <div
+                    className="admin-topbar__meta"
+                    style={{
+                      marginLeft: 'auto',
+                      minWidth: '420px',
+                      padding: '0.45rem 0.25rem',
+                      borderRadius: '14px',
+                      background: 'rgba(255,255,255,0.86)',
+                      border: '1px solid rgba(191, 219, 254, 0.8)',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr 1fr 1fr',
+                      gap: 0,
+                      overflow: 'hidden'
+                    }}
                   >
-                    <RefreshCw className="h-4 w-4" />
-                    Refresh
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleAddItem}
-                    className="btn-primary"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Inventory Item
-                  </button>
+                    <div style={{ textAlign: 'center', padding: '0.45rem 0.2rem', borderRight: '1px solid rgba(191, 219, 254, 0.72)' }}>
+                      <p style={{ margin: 0, fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#2b63c9' }}>Stock</p>
+                      <strong style={{ fontSize: '1.4rem', lineHeight: 1.05, color: '#142d59' }}>{quickInsights.stockItems}</strong>
+                    </div>
+                    <div style={{ textAlign: 'center', padding: '0.45rem 0.2rem', borderRight: '1px solid rgba(191, 219, 254, 0.72)' }}>
+                      <p style={{ margin: 0, fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#0f766e' }}>Funds</p>
+                      <strong style={{ fontSize: '1.4rem', lineHeight: 1.05, color: '#142d59' }}>LKR {quickInsights.totalFunds.toLocaleString()}</strong>
+                    </div>
+                    <div style={{ textAlign: 'center', padding: '0.45rem 0.2rem', borderRight: '1px solid rgba(191, 219, 254, 0.72)' }}>
+                      <p style={{ margin: 0, fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#d04146' }}>Critical</p>
+                      <strong style={{ fontSize: '1.4rem', lineHeight: 1.05, color: '#142d59' }}>{quickInsights.criticalItems}</strong>
+                    </div>
+                    <div style={{ textAlign: 'center', padding: '0.45rem 0.2rem' }}>
+                      <p style={{ margin: 0, fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6d28d9' }}>Total</p>
+                      <strong style={{ fontSize: '1.4rem', lineHeight: 1.05, color: '#142d59' }}>{quickInsights.totalItems}</strong>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Error Display */}
+            {successMessage && (
+              <div className="page-card resource-card" style={{ borderColor: 'rgba(16, 185, 129, 0.35)', background: '#ecfdf5' }}>
+                <p className="text-green-700">{successMessage}</p>
+              </div>
+            )}
 
             {/* Error Display */}
             {error && (
@@ -201,26 +247,14 @@ const ResourceManagementPage = () => {
             {/* Content */}
             {!loading && (
               <>
-                {/* Statistics Cards */}
-                <div className="page-card resource-panel">
-                  <StatisticsCards stats={stats} />
-                </div>
-
                 {/* Low Stock Alert */}
-                <div className="page-card resource-panel">
-                  <LowStockAlert 
-                    lowStockItems={lowStockItems} 
-                    onViewItem={handleViewItem}
-                  />
-                </div>
-
-                {/* Charts Section */}
-                <div className="page-card resource-panel">
-                  <ResourceCharts inventory={inventory} />
-                </div>
+                <LowStockAlert 
+                  lowStockItems={criticalAlertItems} 
+                  onViewItem={handleViewItem}
+                />
 
                 {/* Inventory Table */}
-                <div className="page-card resource-panel">
+                <div className="page-card resource-panel" style={themedPanelStyle}>
                   <InventoryTable
                     inventory={inventory}
                     onEdit={handleEditItem}
@@ -230,58 +264,19 @@ const ResourceManagementPage = () => {
                   />
                 </div>
 
-                <div className="page-card resource-panel">
+                <div className="page-card resource-panel" style={themedPanelStyle}>
                   <div className="resource-ledger__header">
                     <div>
-                      <span className="section-label">Ledger: Recent Donations</span>
-                      <h3 className="page-title">Processing logs from verified partners</h3>
+                      <span className="section-label">Inventory Analytics</span>
+                      <h3 className="page-title" style={{ fontSize: '1.25rem', marginBottom: '0.2rem' }}>Distribution Charts</h3>
+                      <p className="page-subtitle">Inventory and donation distribution by category and type.</p>
                     </div>
-                    <button
-                      type="button"
-                      className="resource-ledger__link"
-                      onClick={() => setShowFullLedger((prev) => !prev)}
-                    >
-                      {showFullLedger ? 'Hide Full Ledger' : 'View Full Ledger'}
-                    </button>
                   </div>
-                  <div className="resource-ledger">
-                    {recentDonations.length === 0 ? (
-                      <div className="resource-ledger__empty">
-                        <Package className="h-10 w-10" />
-                        <p>No donations recorded yet.</p>
-                      </div>
-                    ) : (
-                      recentDonations.map((donation) => (
-                        <article key={donation._id} className="resource-ledger__item">
-                          <div className="resource-ledger__meta">
-                            <span className="resource-ledger__icon">
-                              {donation.type === 'MONEY' ? <DollarSign className="h-4 w-4" /> : <Package className="h-4 w-4" />}
-                            </span>
-                            <div>
-                              <p className="resource-ledger__name">{donation.donorName || 'Anonymous donor'}</p>
-                              <p className="resource-ledger__note">
-                                {donation.type === 'MONEY'
-                                  ? (donation.name || 'Monetary Donation')
-                                  : (donation.name || 'Stock Donation')}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="resource-ledger__value">
-                            <strong>
-                              {donation.type === 'STOCK'
-                                ? `${donation.quantity ?? 0} ${donation.unit || 'units'}`
-                                : `LKR ${Number(donation.amount || 0).toLocaleString()}`}
-                            </strong>
-                            <span>{donation.paymentStatus || donation.status || 'Pending'}</span>
-                          </div>
-                        </article>
-                      ))
-                    )}
-                  </div>
+                  <InventoryAnalyticsCharts inventory={inventory} donations={donations} />
                 </div>
 
                 {selectedItem && (
-                  <div className="page-card resource-panel">
+                  <div className="page-card resource-panel" style={themedPanelStyle}>
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <span className="section-label">Selected Item</span>
@@ -345,100 +340,10 @@ const ResourceManagementPage = () => {
                   </div>
                 )}
 
-                {/* Donation Tables */}
-                {showFullLedger && (
-                <div className="page-card resource-panel resource-ledger-full" id="donations-ledger">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                      <span className="section-label">Donations Ledger</span>
-                      <h3 className="page-title">Donation Records</h3>
-                      <p className="page-subtitle">View money contributions and physical item donations separately.</p>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        className={`btn-secondary ${activeDonationTable === 'MONEY' ? 'btn-secondary--active' : ''}`}
-                        onClick={() => setActiveDonationTable('MONEY')}
-                      >
-                        <DollarSign className="h-4 w-4" />
-                        View Money Donations
-                      </button>
-                      <button
-                        type="button"
-                        className={`btn-secondary ${activeDonationTable === 'STOCK' ? 'btn-secondary--active' : ''}`}
-                        onClick={() => setActiveDonationTable('STOCK')}
-                      >
-                        <Package className="h-4 w-4" />
-                        View Physical Item Donations
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 bg-white rounded-xl shadow-lg overflow-hidden resource-ledger-table">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donation ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donor</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donor NIC</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inventory ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donation Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity/Amount</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                          {(activeDonationTable === 'MONEY' ? moneyDonations : stockDonations).map((donation) => (
-                            <tr key={donation._id} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-gray-600">{donation._id}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{donation.donorName || '-'}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{donation.donorNIC || '-'}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{donation.email || '-'}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-gray-600">{donation.inventoryId || '-'}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{donation.name || '-'}</td>
-                              <td className="px-6 py-4 text-sm text-gray-600">{donation.description || '-'}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                {donation.type === 'STOCK'
-                                  ? `${donation.quantity ?? 0} ${donation.unit || ''}`
-                                  : `LKR ${Number(donation.amount || 0).toLocaleString()}`
-                                }
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                {donation.paymentStatus || 'PENDING'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {formatDateTime(donation.createdAt)}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                <button
-                                  type="button"
-                                  className="p-1 text-red-600 hover:text-red-800 transition-colors"
-                                  onClick={() => handleDeleteDonation(donation._id)}
-                                  title="Delete"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {(activeDonationTable === 'MONEY' ? moneyDonations : stockDonations).length === 0 && (
-                      <div className="text-center py-12">
-                        <Package className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-500">No donations found for this category.</p>
-                      </div>
-                    )}
-                  </div>
+                {/* Stats Details */}
+                <div className="page-card resource-panel" style={themedPanelStyle}>
+                  <StatisticsCards stats={stats} />
                 </div>
-                )}
               </>
             )}
 
