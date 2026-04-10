@@ -10,6 +10,7 @@ import EventCard from "./components/EventCard";
 import ProfileEditor from "./components/ProfileEditor";
 import { clearAuthSession, getAuthSession } from "../../services/authSession";
 import { getDisasters } from "../../services/disasterService";
+import { useAlert } from "../../context/AlertContext";
 
 // Demo events data for fallback (moved inside component scope)
 const demoEvents = [
@@ -105,9 +106,9 @@ const VolunteerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("worldwide");
-  const [statusMessage, setStatusMessage] = useState("");
   const [showProfileEditor, setShowProfileEditor] = useState(false); // Changed from editingProfile
   const [sessionUser, setSessionUser] = useState(null);
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     const { token, role, user } = getAuthSession();
@@ -291,21 +292,20 @@ const VolunteerDashboard = () => {
         volunteerId: volunteer._id || volunteer.volunteerId,
         eventData,
       });
-      setStatusMessage(
-        "✓ You've expressed interest! A coordinator will contact you.",
-      );
-      setTimeout(() => setStatusMessage(""), 3000);
+      showAlert("You've expressed interest! A coordinator will contact you.", {
+        variant: "success",
+      });
     } catch (error) {
-      setStatusMessage("✗ Unable to register interest. Please try again.");
-      setTimeout(() => setStatusMessage(""), 3000);
+      showAlert("Unable to register interest. Please try again.", {
+        variant: "error",
+      });
     }
   };
 
   const handleProfileUpdate = (updatedVolunteer) => {
     setVolunteer(updatedVolunteer);
     setShowProfileEditor(false);
-    setStatusMessage("✓ Profile updated successfully!");
-    setTimeout(() => setStatusMessage(""), 3000);
+    showAlert("Profile updated successfully!", { variant: "success" });
   };
 
   const handleLogout = () => {
@@ -315,8 +315,9 @@ const VolunteerDashboard = () => {
 
   const handleAssign = async (disasterId) => {
     if (volunteer?.status !== "approved") {
-      setStatusMessage("✗ Only approved volunteers can assign themselves to a disaster.");
-      setTimeout(() => setStatusMessage(""), 3000);
+      showAlert("Only approved volunteers can assign themselves to a disaster.", {
+        variant: "warning",
+      });
       return;
     }
 
@@ -326,11 +327,11 @@ const VolunteerDashboard = () => {
         volunteerEmail: volunteer?.email,
       });
       await fetchDisasters();
-      setStatusMessage("✓ You have been assigned to the disaster response.");
-      setTimeout(() => setStatusMessage(""), 3000);
+      showAlert("You have been assigned to the disaster response.", {
+        variant: "success",
+      });
     } catch (error) {
-      setStatusMessage("✗ Unable to assign. Please try again.");
-      setTimeout(() => setStatusMessage(""), 3000);
+      showAlert("Unable to assign. Please try again.", { variant: "error" });
     }
   };
 
@@ -409,9 +410,6 @@ const VolunteerDashboard = () => {
 
       {/* Main Content */}
       <main className="admin-main dashboard-main">
-        {/* Status Message */}
-        {statusMessage && <div className="status-toast">{statusMessage}</div>}
-
         {activeTab === "dashboard" && (
           <>
             {/* Welcome Header */}

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { deleteDisaster, getDisasters, updateDisaster, verifyDisaster } from "../../services/disasterService";
 import Loader from "../../components/common/Loader";
 import { clearAuthSession } from "../../services/authSession";
+import { useAlert } from "../../context/AlertContext";
 
 const normalizeText = (value) => (value ?? "").toString().trim();
 
@@ -60,6 +61,7 @@ const AdminDashboardPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [clock, setClock] = useState(() => formatClock(new Date()));
+  const { showAlert, showConfirm } = useAlert();
 
   useEffect(() => {
     const timer = setInterval(() => setClock(formatClock(new Date())), 1000);
@@ -150,13 +152,19 @@ const AdminDashboardPage = () => {
   };
 
   const handleDelete = async (id) => {
-    const confirmed = window.confirm("Delete this disaster? This action cannot be undone.");
+    const confirmed = await showConfirm("Delete this disaster? This action cannot be undone.", {
+      confirmLabel: "Delete",
+      variant: "warning",
+    });
     if (!confirmed) return;
 
     setUpdatingId(id);
     try {
       await deleteDisaster(id);
       await fetchDisasters();
+      showAlert("Disaster deleted successfully.", { variant: "success" });
+    } catch (error) {
+      showAlert("Failed to delete disaster. Please try again.", { variant: "error" });
     } finally {
       setUpdatingId("");
     }

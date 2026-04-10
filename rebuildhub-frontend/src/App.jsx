@@ -28,6 +28,7 @@ import AdminVolunteerManagement from "./pages/volunteer/AdminVolunteerManagement
 import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { ResourceProvider } from "./context/ResourceContext.jsx";
+import { AlertProvider } from "./context/AlertContext.jsx";
 
 const AppShell = () => {
   return (
@@ -156,7 +157,9 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <ResourceProvider>
-          <AppShell />
+          <AlertProvider>
+            <AppShell />
+          </AlertProvider>
         </ResourceProvider>
       </AuthProvider>
     </BrowserRouter>

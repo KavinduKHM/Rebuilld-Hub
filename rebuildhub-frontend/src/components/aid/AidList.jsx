@@ -4,6 +4,7 @@ import Loader from "../common/Loader";
 import { clearAuthSession } from "../../services/authSession";
 import { getAllAids } from "../../services/aidService";
 import { FaCalendarCheck } from "react-icons/fa";
+import { useAlert } from "../../context/AlertContext";
 
 import {
 	MdArrowForward,
@@ -38,6 +39,7 @@ const AidList = () => {
 	const [selectedRange, setSelectedRange] = useState("ALL");
 	const [currentPage, setCurrentPage] = useState(1);
 	const pageSize = 6;
+	const { showAlert } = useAlert();
 
 	useEffect(() => {
 		fetchCompletedAids();
@@ -52,7 +54,9 @@ const AidList = () => {
 			const completed = (response.data || []).filter((aid) => isCompletedRequest(aid));
 			setCompletedAids(completed);
 		} catch (err) {
-			setError(err.response?.data?.message || "Unable to load completed aid requests.");
+			const message = err.response?.data?.message || "Unable to load completed aid requests.";
+			setError(message);
+			showAlert(message, { variant: "error" });
 		} finally {
 			setLoading(false);
 		}
@@ -159,6 +163,7 @@ const AidList = () => {
 		link.click();
 		document.body.removeChild(link);
 		URL.revokeObjectURL(url);
+		showAlert("Exported completed aid requests.", { variant: "success" });
 	};
 
 	return (

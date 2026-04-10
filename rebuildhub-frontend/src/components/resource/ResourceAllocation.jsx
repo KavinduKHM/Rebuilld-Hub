@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Package, DollarSign, AlertCircle, CheckCircle, CreditCard } from "lucide-react";
 import resourceService from '../../services/resourceService';
 import { formatCurrencyLKR } from "../../utils/formatters";
+import { useAlert } from "../../context/AlertContext";
 
 const initialForm = {
   donorName: "",
@@ -24,6 +25,7 @@ export default function ResourceAllocation({ open, onClose }) {
   const [success, setSuccess] = useState(null);
   const [clientSecret, setClientSecret] = useState(null);
   const [step, setStep] = useState(1); // 1 = form, 2 = payment info
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     if (open) {
@@ -118,11 +120,14 @@ export default function ResourceAllocation({ open, onClose }) {
       if (form.type === "MONEY" && result.clientSecret) {
         setClientSecret(result.clientSecret);
         setStep(2);
+        showAlert("Payment initiated. Use the client secret to complete payment.", { variant: "info" });
       } else {
         setSuccess("Thank you! Your donation has been recorded successfully.");
+        showAlert("Donation recorded successfully.", { variant: "success" });
       }
     } catch (err) {
       setErrors({ submit: err.message || "Failed to process donation" });
+      showAlert(err.message || "Failed to process donation", { variant: "error" });
     } finally {
       setLoading(false);
     }

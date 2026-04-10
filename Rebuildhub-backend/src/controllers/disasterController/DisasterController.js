@@ -25,12 +25,11 @@ exports.createDisaster = async (req, res) => {
   try {
     let imageUrls = [];
 
-    // Upload disaster evidence images to Cloudinary
+    // Upload disaster evidence images to Cloudinary in parallel.
     if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        const imageUrl = await uploadToCloudinary(file.buffer);
-        imageUrls.push(imageUrl);
-      }
+      imageUrls = await Promise.all(
+        req.files.map((file) => uploadToCloudinary(file.buffer))
+      );
     }
 
     // Create Disaster with images
@@ -41,17 +40,6 @@ exports.createDisaster = async (req, res) => {
       createdBy: req.user?.id || null,
     });
 
-    const mapLink = mapService.generateGoogleMapLink(
-    disaster.location?.latitude,
-    disaster.location?.longitude
-     );
-
-    const embedMapLink = mapService.generateEmbedMapLink(
-    disaster.location?.latitude,
-    disaster.location?.longitude
-    );
-
-        
     const latitude = disaster.location?.latitude;
     const longitude = disaster.location?.longitude;
 

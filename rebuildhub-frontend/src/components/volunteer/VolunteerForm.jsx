@@ -1,6 +1,7 @@
 // src/components/volunteer/VolunteerForm.jsx
 import { useState } from "react"; // Remove useMemo since we're not using it
 import { registerVolunteer } from "../../services/volunteerService";
+import { useAlert } from "../../context/AlertContext";
 import "./VolunteerForm.css";
 
 const districtOptions = [
@@ -43,8 +44,8 @@ const initialFormState = {
 
 const VolunteerForm = () => {
   const [formData, setFormData] = useState(initialFormState);
-  const [statusMessage, setStatusMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showAlert } = useAlert();
 
   // Remove the unused selectedSkillsLabel variable
 
@@ -69,7 +70,7 @@ const VolunteerForm = () => {
     event.preventDefault();
 
     if (formData.skills.length === 0) {
-      setStatusMessage("Please select at least one skill.");
+      showAlert("Please select at least one skill.", { variant: "warning" });
       return;
     }
 
@@ -85,20 +86,17 @@ const VolunteerForm = () => {
     };
 
     setIsSubmitting(true);
-    setStatusMessage("Submitting application...");
 
     try {
       const response = await registerVolunteer(payload);
-      setStatusMessage(
-        response?.message || "Volunteer application submitted successfully!",
-      );
+      showAlert(response?.message || "Volunteer application submitted successfully!", {
+        variant: "success",
+      });
       setFormData(initialFormState);
-      setTimeout(() => setStatusMessage(""), 5000);
     } catch (error) {
-      setStatusMessage(
-        error.message || "Unable to submit the application right now.",
-      );
-      setTimeout(() => setStatusMessage(""), 5000);
+      showAlert(error.message || "Unable to submit the application right now.", {
+        variant: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -229,13 +227,6 @@ const VolunteerForm = () => {
           </button>
         </div>
 
-        {statusMessage && (
-          <div
-            className={`status-message ${statusMessage.includes("successfully") ? "success" : "error"}`}
-          >
-            {statusMessage}
-          </div>
-        )}
       </form>
     </div>
   );

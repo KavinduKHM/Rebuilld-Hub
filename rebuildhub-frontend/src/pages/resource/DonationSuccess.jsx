@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle, Heart, Loader2, AlertTriangle } from 'lucide-react';
+import { useAlert } from '../../context/AlertContext';
 
 const DonationSuccess = () => {
   const navigate = useNavigate();
@@ -8,6 +9,7 @@ const DonationSuccess = () => {
   const [status, setStatus] = useState('loading');
   const [message, setMessage] = useState('');
   const [donationAmount, setDonationAmount] = useState(null);
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -38,14 +40,17 @@ const DonationSuccess = () => {
         setStatus('success');
         setMessage('Your donation has been successfully processed!');
         setDonationAmount(result.donation?.amount);
+        showAlert('Your donation has been successfully processed!', { variant: 'success' });
       } else {
         setStatus('error');
         setMessage(result.message || 'Payment verification failed');
+        showAlert(result.message || 'Payment verification failed', { variant: 'error' });
       }
     } catch (error) {
       console.error('Verification error:', error);
       setStatus('error');
       setMessage('Failed to verify payment. Please contact support.');
+      showAlert('Failed to verify payment. Please contact support.', { variant: 'error' });
     }
   };
 

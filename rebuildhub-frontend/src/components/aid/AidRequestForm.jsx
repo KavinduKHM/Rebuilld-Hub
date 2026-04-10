@@ -7,6 +7,7 @@ import { TiLocationOutline } from "react-icons/ti";
 import { MdOutlineSecurity } from "react-icons/md";
 import { LuHeartHandshake } from "react-icons/lu";
 import { ImAidKit } from "react-icons/im";
+import { useAlert } from "../../context/AlertContext";
 
 const initialFormState = {
 	damageReportId: "",
@@ -56,8 +57,7 @@ const AidRequestForm = () => {
 	const locationState = useLocation();
 	const [formData, setFormData] = useState(initialFormState);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [isSubmitted, setIsSubmitted] = useState(false);
-	const [error, setError] = useState("");
+	const { showAlert } = useAlert();
 
 	useEffect(() => {
 		const selectedDisasterId = locationState.state?.disasterId;
@@ -128,7 +128,6 @@ const AidRequestForm = () => {
 	const handleSubmit = async (event) => {
 		event.preventDefault();
 		setIsSubmitting(true);
-		setError("");
 
 		try {
 			await createAid({
@@ -142,11 +141,12 @@ const AidRequestForm = () => {
 					city: formData.location.city.trim(),
 				},
 			});
-
-			setIsSubmitted(true);
+			showAlert("Aid request submitted successfully.", { variant: "success" });
 			setFormData(initialFormState);
 		} catch (error) {
-			setError(error.response?.data?.message || "Unable to submit aid request.");
+			showAlert(error.response?.data?.message || "Unable to submit aid request.", {
+				variant: "error",
+			});
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -183,13 +183,6 @@ const AidRequestForm = () => {
 					}}
 				>
 					<form onSubmit={handleSubmit} className="page-card" style={{ padding: "1.5rem" }}>
-						{error && <p className="empty-state" style={{ color: "#b4232c", marginBottom: "1rem" }}>{error}</p>}
-
-						{isSubmitted && (
-							<div className="empty-state" style={{ color: "#0f5132", borderStyle: "solid", marginBottom: "1rem" }}>
-								Aid request submitted successfully.
-							</div>
-						)}
 
 						<div style={{ marginBottom: "1.2rem" }}>
 							<h3 style={{ marginBottom: "0.45rem", fontSize: "1.05rem" }}><FaFingerprint color="#2563EB"  style={{ marginRight: "0.45rem" }}/>     Request Identification</h3>

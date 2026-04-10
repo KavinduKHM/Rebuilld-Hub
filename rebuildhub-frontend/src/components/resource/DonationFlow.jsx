@@ -5,6 +5,7 @@ import {
   AlertTriangle, User, Mail, CheckCircle, 
   Lock, Building, Loader2, Globe, CreditCard
 } from 'lucide-react';
+import { useAlert } from '../../context/AlertContext';
 
 const DonationFlow = ({ onClose }) => {
   const MIN_DONATION_AMOUNT = 200;
@@ -56,6 +57,7 @@ const DonationFlow = ({ onClose }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [availableFunds, setAvailableFunds] = useState([]);
   const [selectedFund, setSelectedFund] = useState(null);
+  const { showAlert } = useAlert();
 
   // Exchange rates
   const exchangeRates = { LKR: 1, USD: 0.0033, EUR: 0.0031, GBP: 0.0026, JPY: 0.50, AUD: 0.0050, CAD: 0.0045 };
@@ -111,6 +113,7 @@ const DonationFlow = ({ onClose }) => {
       if (result.success) {
         setSubmitSuccess(true);
         setDonationResult(result.donation);
+        showAlert('Payment verified. Thank you for your donation!', { variant: 'success' });
         // Clear URL parameters
         window.history.replaceState({}, document.title, window.location.pathname);
         // Auto close after 3 seconds
@@ -120,11 +123,13 @@ const DonationFlow = ({ onClose }) => {
         }, 3000);
       } else {
         setPaymentError(result.message || 'Payment verification failed');
+        showAlert(result.message || 'Payment verification failed', { variant: 'error' });
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     } catch (error) {
       console.error('Verification error:', error);
       setPaymentError('Failed to verify payment. Please contact support.');
+      showAlert('Failed to verify payment. Please contact support.', { variant: 'error' });
       window.history.replaceState({}, document.title, window.location.pathname);
     } finally {
       setIsVerifying(false);
@@ -389,10 +394,12 @@ const DonationFlow = ({ onClose }) => {
       
       setSubmitSuccess(true);
       setDonationResult({ type: 'STOCK', amount: stockForm.quantity, item: stockForm.name });
+      showAlert('Donation submitted successfully.', { variant: 'success' });
       setTimeout(() => handleClose(), 2500);
     } catch (error) {
       console.error('Stock donation error:', error);
       setErrors({ submit: error.message });
+      showAlert(error.message || 'Donation failed', { variant: 'error' });
     } finally {
       setIsSubmitting(false);
     }
@@ -442,6 +449,7 @@ const DonationFlow = ({ onClose }) => {
       }
 
       if (result.url) {
+        showAlert('Redirecting to secure payment...', { variant: 'info' });
         // Redirect to Stripe checkout
         window.location.href = result.url;
       } else {
@@ -450,6 +458,7 @@ const DonationFlow = ({ onClose }) => {
     } catch (error) {
       console.error('Money donation error:', error);
       setErrors({ submit: error.message });
+      showAlert(error.message || 'Payment failed. Please try again.', { variant: 'error' });
       setIsSubmitting(false);
     }
   };
