@@ -228,27 +228,25 @@ exports.assignVolunteer = async (req, res) => {
       .includes(volunteerObjectId);
     let notification = {
       skipped: true,
-      reason: alreadyAssigned
-        ? "Volunteer already assigned; notification not retriggered"
-        : "Notification not attempted",
+      reason: "Notification not attempted",
     };
 
     if (!alreadyAssigned) {
       disaster.assignedVolunteers = [...(disaster.assignedVolunteers || []), volunteer._id];
       await disaster.save();
+    }
 
-      try {
-        notification = await sendAssignmentWhatsApp({
-          volunteerPhone: volunteer.phone,
-          disaster,
-        });
-      } catch (notificationError) {
-        notification = {
-          skipped: true,
-          reason: notificationError.message || "Twilio send failed",
-        };
-        console.error("WhatsApp assignment notification failed:", notificationError.message);
-      }
+    try {
+      notification = await sendAssignmentWhatsApp({
+        volunteerPhone: volunteer.phone,
+        disaster,
+      });
+    } catch (notificationError) {
+      notification = {
+        skipped: true,
+        reason: notificationError.message || "Twilio send failed",
+      };
+      console.error("WhatsApp assignment notification failed:", notificationError.message);
     }
 
     return res.status(200).json({
