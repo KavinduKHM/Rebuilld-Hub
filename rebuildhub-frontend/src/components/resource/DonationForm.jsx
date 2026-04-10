@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, CreditCard, Package, User, DollarSign, Heart, Shield, TrendingDown, CheckCircle, AlertTriangle } from 'lucide-react';
 import { X, CreditCard, Package, AlertCircle, User, Mail, DollarSign, Heart, Shield, TrendingDown, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useAlert } from '../../context/AlertContext';
 
