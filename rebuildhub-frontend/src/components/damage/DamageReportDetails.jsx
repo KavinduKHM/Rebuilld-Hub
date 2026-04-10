@@ -9,6 +9,7 @@ const DamageReportDetails = () => {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState({ type: "", message: "" });
   const role = localStorage.getItem("role");
 
   const fetchReport = useCallback(async () => {
@@ -29,10 +30,10 @@ const DamageReportDetails = () => {
   const handleVerify = async (status) => {
     try {
       await verifyReport(id, status);
-      alert(`Report marked as ${status}`);
+      setNotice({ type: "success", message: `Report marked as ${status}.` });
       fetchReport();
     } catch (err) {
-      alert("Verification failed");
+      setNotice({ type: "error", message: "Verification failed." });
     }
   };
 
@@ -43,6 +44,11 @@ const DamageReportDetails = () => {
   return (
     <div className="page-shell damage-detail-shell">
       <div className="container detail-stack">
+        {notice.message && (
+          <div className={`alert alert--${notice.type}`} role="alert">
+            {notice.message}
+          </div>
+        )}
         <header className="page-card damage-detail-header">
           <div>
             <span className="section-label">Damage Detail</span>

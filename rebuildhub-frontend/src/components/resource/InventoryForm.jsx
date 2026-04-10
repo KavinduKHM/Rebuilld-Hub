@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Package, DollarSign } from 'lucide-react';
 import '../../pages/resource/ResourcePage.css';
+import { useAlert } from '../../context/AlertContext';
 
 const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     if (initialData && isEditing) {
@@ -105,11 +107,16 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
       };
       
       await onSubmit(submitData);
+      showAlert(
+        isEditing ? 'Inventory item updated successfully.' : 'Inventory item created successfully.',
+        { variant: 'success' }
+      );
       resetForm();
       onClose();
     } catch (error) {
       console.error('Form submission error:', error);
       setErrors({ submit: error.message || 'Failed to save inventory item' });
+      showAlert(error.message || 'Failed to save inventory item', { variant: 'error' });
     } finally {
       setIsSubmitting(false);
     }
@@ -328,7 +335,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
               {formData.type === 'MONEY' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1 inventory-modal__label">
-                    Initial Amount (USD)
+                    Initial Amount (LKR)
                   </label>
                   <input
                     type="number"

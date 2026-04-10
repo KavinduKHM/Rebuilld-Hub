@@ -49,6 +49,7 @@ const DisasterDetails = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState({ type: "", message: "" });
   const role = localStorage.getItem("role");
   const [assigning, setAssigning] = useState(false);
 
@@ -74,20 +75,20 @@ const DisasterDetails = () => {
   const handleVerify = async (reportId, status) => {
     try {
       await verifyReport(reportId, status);
-      alert(`Report marked as ${status}`);
+      setNotice({ type: "success", message: `Report marked as ${status}.` });
       fetchData();
     } catch (err) {
-      alert("Verification failed");
+      setNotice({ type: "error", message: "Verification failed." });
     }
   };
 
   const handleVerifyDisaster = async (status) => {
     try {
       await verifyDisaster(id, status);
-      alert(`Disaster marked as ${status}`);
+      setNotice({ type: "success", message: `Disaster marked as ${status}.` });
       fetchData();
     } catch (err) {
-      alert("Disaster verification failed");
+      setNotice({ type: "error", message: "Disaster verification failed." });
     }
   };
 
@@ -112,7 +113,7 @@ const DisasterDetails = () => {
     try {
       const volunteerId = await resolveVolunteerId();
       if (!volunteerId) {
-        alert("Volunteer account not found. Please sign in again.");
+        setNotice({ type: "error", message: "Volunteer account not found. Please sign in again." });
         return;
       }
 
@@ -121,9 +122,12 @@ const DisasterDetails = () => {
         volunteerId,
         volunteerEmail: session?.user?.email,
       });
-      alert("You have been assigned to this disaster.");
+      setNotice({ type: "success", message: "You have been assigned to this disaster." });
     } catch (err) {
-      alert(err?.response?.data?.message || "Unable to assign.");
+      setNotice({
+        type: "error",
+        message: err?.response?.data?.message || "Unable to assign.",
+      });
     } finally {
       setAssigning(false);
     }
@@ -154,6 +158,11 @@ const DisasterDetails = () => {
   return (
     <div className="page-shell disaster-detail-shell">
       <div className="container container--wide detail-stack">
+        {notice.message && (
+          <div className={`alert alert--${notice.type}`} role="alert">
+            {notice.message}
+          </div>
+        )}
         <header className="page-card detail-command-strip">
           <div>
             <span className="section-label">Incident Command</span>

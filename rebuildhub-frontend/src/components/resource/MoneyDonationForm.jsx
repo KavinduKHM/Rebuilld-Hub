@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Heart, CreditCard, X, Lock, AlertTriangle, Globe, Loader2
 } from 'lucide-react';
+import { useAlert } from '../../context/AlertContext';
 
 // Exchange rates for display
 const exchangeRates = {
@@ -24,6 +25,7 @@ const currencies = [
 
 // Internal form component that uses Stripe
 const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFunds }) => {
+  const { showAlert } = useAlert();
   const [formData, setFormData] = useState({
     donorName: '',
     donorNIC: '',
@@ -279,6 +281,7 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
       }
 
       if (result.url) {
+        showAlert('Redirecting to secure payment...', { variant: 'info' });
         window.location.href = result.url;
         return;
       }
@@ -287,6 +290,7 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
     } catch (error) {
       console.error('Payment error:', error);
       setErrors({ submit: error.message || 'Payment failed. Please try again.' });
+      showAlert(error.message || 'Payment failed. Please try again.', { variant: 'error' });
     } finally {
       setIsProcessing(false);
     }

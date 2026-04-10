@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getForecast, getWeather } from "../../services/weatherService";
+import { useAlert } from "../../context/AlertContext";
 import {
   MdAir,
   MdCompress,
@@ -92,6 +93,7 @@ const WeatherPage = () => {
   const [forecast, setForecast] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -109,7 +111,9 @@ const WeatherPage = () => {
       } catch (err) {
         setWeather(null);
         setForecast([]);
-        setError(err.response?.data?.message || "Unable to load weather data.");
+        const message = err.response?.data?.message || "Unable to load weather data.";
+        setError(message);
+        showAlert(message, { variant: "error" });
       } finally {
         setLoading(false);
       }
@@ -165,12 +169,6 @@ const WeatherPage = () => {
             </div>
           </form>
         </section>
-
-        {error && (
-          <div className="empty-state" style={{ color: "#b4232c", marginBottom: "1rem" }}>
-            {error}
-          </div>
-        )}
 
         {weather && (
           <div className="page-grid" style={{ gridTemplateColumns: "1.2fr 0.8fr", marginBottom: "1rem" }}>

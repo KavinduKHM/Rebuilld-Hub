@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { X, Package, DollarSign, AlertCircle, CheckCircle, CreditCard } from "lucide-react";
 import resourceService from '../../services/resourceService';
+import { formatCurrencyLKR } from "../../utils/formatters";
+import { useAlert } from "../../context/AlertContext";
 
 const initialForm = {
   donorName: "",
@@ -23,6 +25,7 @@ export default function ResourceAllocation({ open, onClose }) {
   const [success, setSuccess] = useState(null);
   const [clientSecret, setClientSecret] = useState(null);
   const [step, setStep] = useState(1); // 1 = form, 2 = payment info
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     if (open) {
@@ -126,11 +129,14 @@ export default function ResourceAllocation({ open, onClose }) {
       if (form.type === "MONEY" && result.clientSecret) {
         setClientSecret(result.clientSecret);
         setStep(2);
+        showAlert("Payment initiated. Use the client secret to complete payment.", { variant: "info" });
       } else {
         setSuccess("Thank you! Your donation has been recorded successfully.");
+        showAlert("Donation recorded successfully.", { variant: "success" });
       }
     } catch (err) {
       setErrors({ submit: err.message || "Failed to process donation" });
+      showAlert(err.message || "Failed to process donation", { variant: "error" });
     } finally {
       setLoading(false);
     }
@@ -183,7 +189,7 @@ export default function ResourceAllocation({ open, onClose }) {
               </div>
               <h3 className="text-white font-bold text-lg mb-2">Payment Initiated</h3>
               <p className="text-gray-400 text-sm mb-4">
-                Your donation of <span className="text-white font-semibold">${form.amount}</span> has been registered.
+                Your donation of <span className="text-white font-semibold">{formatCurrencyLKR(form.amount || 0)}</span> has been registered.
                 Use the client secret below with Stripe to complete payment.
               </p>
               <div className="w-full bg-black/40 rounded-xl p-3 text-left border border-white/10 mb-4">

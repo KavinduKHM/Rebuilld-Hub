@@ -5,11 +5,12 @@ import {
   Search, Filter, TrendingDown,
   Droplets, Tent, Briefcase, DollarSign,
   Gift, Shield, BarChart3, Users, Clock,
-  ChevronDown, ChevronUp, X, PlusCircle
+  ChevronDown, ChevronUp, PlusCircle
 } from 'lucide-react';
 import DonationForm from '../../components/resource/DonationForm';
 import MoneyDonationForm from '../../components/resource/MoneyDonationForm';
 import DonationFlow from '../../components/resource/DonationFlow'; // This is actually DonationFlow
+import { useAlert } from '../../context/AlertContext';
 import "./ResourcePage.css";
 
 const ResourcePage = () => {
@@ -27,8 +28,7 @@ const ResourcePage = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedFund, setSelectedFund] = useState(null);
   const [expandedSection, setExpandedSection] = useState('money');
-  const [paymentNotice, setPaymentNotice] = useState(null);
-  const [paymentSuccessDetails, setPaymentSuccessDetails] = useState(null);
+  const { showAlert } = useAlert();
 
   // Fetch inventory from database
   useEffect(() => {
@@ -45,18 +45,14 @@ const ResourcePage = () => {
     if (payment === 'success' && sessionId) {
       // Clean URL immediately, then verify in background.
       window.history.replaceState({}, document.title, cleanResourcesUrl);
-      setPaymentNotice({
-        type: 'pending',
-        message: 'Verifying your payment. Please wait a moment...',
-      });
+      showAlert('Verifying your payment. Please wait a moment...', { variant: 'info' });
       verifyPayment(sessionId, donationId);
       return;
     }
 
     if (payment === 'canceled') {
-      setPaymentNotice({
-        type: 'error',
-        message: 'Payment was canceled. You can try again when you are ready.',
+      showAlert('Payment was canceled. You can try again when you are ready.', {
+        variant: 'warning',
       });
       window.history.replaceState({}, document.title, cleanResourcesUrl);
     }
@@ -76,6 +72,9 @@ const ResourcePage = () => {
     } catch (error) {
       console.error('Error fetching inventory:', error);
       setError('Failed to load inventory. Please check if backend is running.');
+      showAlert('Failed to load inventory. Please check if backend is running.', {
+        variant: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -89,25 +88,15 @@ const ResourcePage = () => {
       const result = await response.json();
 
       if (result.success) {
-        setPaymentNotice({
-          type: 'success',
-          message: 'Payment verified. Thank you for your donation! Inventory has been updated.',
-        });
-        setPaymentSuccessDetails(result.donation || null);
+        showAlert('Payment verified. Thank you for your donation!', { variant: 'success' });
         await fetchInventory();
       } else {
-        setPaymentNotice({
-          type: 'error',
-          message: result.message || 'Payment verification failed. Please contact support.',
+        showAlert(result.message || 'Payment verification failed. Please contact support.', {
+          variant: 'error',
         });
-        setPaymentSuccessDetails(null);
       }
     } catch (err) {
-      setPaymentNotice({
-        type: 'error',
-        message: 'Unable to verify payment. Please contact support.',
-      });
-      setPaymentSuccessDetails(null);
+      showAlert('Unable to verify payment. Please contact support.', { variant: 'error' });
     }
   };
 
@@ -239,27 +228,6 @@ const ResourcePage = () => {
   return (
     <div className="page-shell resource-shell resource-shell--public">
       <div className="container container--wide resource-shell__inner">
-        {paymentNotice && (
-          <div className={`page-card resource-notice resource-notice--${paymentNotice.type}`}>
-            <div>
-              <strong>
-                {paymentNotice.type === 'success'
-                  ? 'Payment Success'
-                  : paymentNotice.type === 'pending'
-                    ? 'Processing Payment'
-                    : 'Payment Issue'}
-              </strong>
-              <p>{paymentNotice.message}</p>
-            </div>
-            <button
-              type="button"
-              className="resource-notice__close"
-              onClick={() => setPaymentNotice(null)}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
         <section className="page-card resource-hero">
           <div className="resource-hero__halo" aria-hidden="true" />
           <div className="resource-hero__content">
@@ -694,43 +662,6 @@ const ResourcePage = () => {
         <DonationFlow
           onClose={handleCloseDonationFlow}
         />
-      )}
-
-      {paymentNotice?.type === 'success' && paymentSuccessDetails && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center px-4" role="dialog" aria-modal="true">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => {
-              setPaymentNotice(null);
-              setPaymentSuccessDetails(null);
-            }}
-          />
-          <div className="relative bg-white rounded-2xl p-8 text-center max-w-md w-full shadow-xl border border-green-200">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Heart className="w-10 h-10 text-green-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-green-800 mb-2">Payment Successful!</h3>
-            <p className="text-green-700 mb-2">Thank you for your donation.</p>
-            {paymentSuccessDetails?.amount && (
-              <p className="text-lg font-semibold text-green-800 mb-3">
-                Amount: LKR {Number(paymentSuccessDetails.amount).toLocaleString()}
-              </p>
-            )}
-            {paymentSuccessDetails?.name && (
-              <p className="text-sm text-slate-600 mb-5">Fund: {paymentSuccessDetails.name}</p>
-            )}
-            <button
-              type="button"
-              onClick={() => {
-                setPaymentNotice(null);
-                setPaymentSuccessDetails(null);
-              }}
-              className="px-6 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-all"
-            >
-              Continue
-            </button>
-          </div>
-        </div>
       )}
 
     </div>

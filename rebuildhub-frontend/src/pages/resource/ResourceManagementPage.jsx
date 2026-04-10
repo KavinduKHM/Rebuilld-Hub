@@ -9,6 +9,7 @@ import InventoryForm from '../../components/resource/InventoryForm';
 import StatisticsCards from '../../components/resource/StatisticsCards';
 import LowStockAlert from '../../components/resource/LowStockAlert';
 import InventoryAnalyticsCharts from '../../components/resource/InventoryAnalyticsCharts';
+import { useAlert } from '../../context/AlertContext';
 import "./ResourcePage.css";
 
 const themedHeaderStyle = {
@@ -42,7 +43,7 @@ const ResourceManagementPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [successMessage, setSuccessMessage] = useState('');
+  const { showAlert, showConfirm } = useAlert();
 
   // Check if user is admin
   const role = user?.role || localStorage.getItem('role');
@@ -53,12 +54,6 @@ const ResourceManagementPage = () => {
       return;
     }
   }, [isAdmin]);
-
-  useEffect(() => {
-    if (!successMessage) return;
-    const timer = setTimeout(() => setSuccessMessage(''), 3000);
-    return () => clearTimeout(timer);
-  }, [successMessage]);
 
   const handleLogout = () => {
     clearAuthSession();
@@ -81,13 +76,17 @@ const ResourceManagementPage = () => {
   };
 
   const handleDeleteItem = async (item) => {
-    if (window.confirm(`Are you sure you want to delete "${item.name}"? This action cannot be undone.`)) {
-      try {
-        await deleteInventory(item._id);
-        setSuccessMessage(`Inventory item "${item.name || 'Item'}" deleted successfully.`);
-      } catch (err) {
-        alert('Failed to delete item: ' + err.message);
-      }
+    const confirmed = await showConfirm(
+      `Are you sure you want to delete "${item.name}"? This action cannot be undone.`,
+      { confirmLabel: "Delete", variant: "warning" }
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteInventory(item._id);
+      showAlert(`Inventory item "${item.name || 'Item'}" deleted successfully.`, { variant: 'success' });
+    } catch (err) {
+      showAlert(`Failed to delete item: ${err.message}`, { variant: 'error' });
     }
   };
 
@@ -224,16 +223,9 @@ const ResourceManagementPage = () => {
             </div>
 
             {/* Error Display */}
-            {successMessage && (
-              <div className="page-card resource-card" style={{ borderColor: 'rgba(16, 185, 129, 0.35)', background: '#ecfdf5' }}>
-                <p className="text-green-700">{successMessage}</p>
-              </div>
-            )}
-
-            {/* Error Display */}
             {error && (
-              <div className="page-card resource-card resource-alert">
-                <p className="text-red-600">{error}</p>
+              <div className="alert alert--error" role="alert">
+                {error}
               </div>
             )}
 

@@ -388,13 +388,16 @@ const LocationMapPicker = ({ location, onChange }) => {
   }, [location.latitude, location.longitude]);
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.helper}>
-        Click on the map or search by location name to set the disaster location.
+    <div className="map-picker">
+      <div className="map-picker__header">
+        
+        <span className={location.latitude && location.longitude ? "map-picker__status map-picker__status--set" : "map-picker__status"}>
+          {location.latitude && location.longitude ? "Location locked" : "No location set"}
+        </span>
       </div>
 
       {/* Search Box */}
-      <div style={styles.searchBox}>
+      <div className="map-picker__search">
         <input
           type="text"
           placeholder="Search Sri Lanka location..."
@@ -416,22 +419,23 @@ const LocationMapPicker = ({ location, onChange }) => {
               }
             }
           }}
-          style={styles.searchInput}
+          className="map-picker__input"
           onFocus={() => searchQuery && setShowResults(true)}
         />
-        {searchLoading && <div style={styles.loadingText}>Searching...</div>}
+        {searchLoading && <div className="map-picker__loading">Searching...</div>}
 
         {/* Search Results Dropdown */}
         {showResults && searchResults.length > 0 && (
-          <div style={styles.resultsDropdown}>
+          <div className="map-picker__results">
             {searchResults.map((result, idx) => (
-              <div
+              <button
                 key={idx}
-                style={styles.resultItem}
+                type="button"
+                className="map-picker__result"
                 onClick={() => handleSelectResult(result)}
               >
-                <div style={styles.resultName}>{result.display_name}</div>
-              </div>
+                <span className="map-picker__result-name">{result.display_name}</span>
+              </button>
             ))}
           </div>
         )}
@@ -440,7 +444,7 @@ const LocationMapPicker = ({ location, onChange }) => {
       <MapContainer
         center={center}
         zoom={13}
-        style={{ height: "320px", borderRadius: "16px", overflow: "hidden" }}
+        className="map-picker__map"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -470,63 +474,6 @@ const LocationMapPicker = ({ location, onChange }) => {
       </MapContainer>
     </div>
   );
-};
-
-const styles = {
-  wrapper: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.75rem",
-  },
-  helper: {
-    color: "#cbd5e1",
-    fontSize: "0.95rem",
-  },
-  searchBox: {
-    position: "relative",
-    display: "flex",
-    flexDirection: "column",
-  },
-  searchInput: {
-    padding: "0.6rem 0.9rem",
-    borderRadius: "8px",
-    border: "1px solid #374151",
-    background: "#1f2937",
-    color: "#e5e7eb",
-    fontSize: "0.95rem",
-    outline: "none",
-  },
-  resultsDropdown: {
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    right: 0,
-    background: "#1f2937",
-    border: "1px solid #374151",
-    borderRadius: "8px",
-    marginTop: "4px",
-    maxHeight: "250px",
-    overflowY: "auto",
-    zIndex: 10,
-  },
-  resultItem: {
-    padding: "0.6rem 0.9rem",
-    borderBottom: "1px solid #374151",
-    cursor: "pointer",
-    transition: "background 0.2s",
-  },
-  resultName: {
-    color: "#e5e7eb",
-    fontSize: "0.9rem",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-  loadingText: {
-    color: "#9ca3af",
-    fontSize: "0.85rem",
-    marginTop: "0.3rem",
-  },
 };
 
 export default LocationMapPicker;

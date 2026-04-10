@@ -7,6 +7,7 @@ import { TiLocationOutline } from "react-icons/ti";
 import { MdOutlineSecurity } from "react-icons/md";
 import { LuHeartHandshake } from "react-icons/lu";
 import { ImAidKit } from "react-icons/im";
+import { useAlert } from "../../context/AlertContext";
 
 const initialFormState = {
 	damageReportId: "",
@@ -20,7 +21,7 @@ const initialFormState = {
 	},
 };
 
-const aidTypes = ["Food", "Water", "Medicine", "Shelter", "Clothing", "Other"];
+const aidTypes = ["Food", "Cloth", "Sanitory", "Money"];
 
 const locationOptions = {
 	"Sri Lanka": {
@@ -56,8 +57,7 @@ const AidRequestForm = () => {
 	const locationState = useLocation();
 	const [formData, setFormData] = useState(initialFormState);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [isSubmitted, setIsSubmitted] = useState(false);
-	const [error, setError] = useState("");
+	const { showAlert } = useAlert();
 
 	useEffect(() => {
 		const selectedDisasterId = locationState.state?.disasterId;
@@ -83,6 +83,7 @@ const AidRequestForm = () => {
 		.filter((part) => part && part.trim())
 		.join(", ");
 	const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery || "Sri Lanka")}&z=11&output=embed`;
+	const isMoneyAid = formData.aidType === "Money";
 
 	const handleChange = (event) => {
 		const { name, value } = event.target;
@@ -127,7 +128,6 @@ const AidRequestForm = () => {
 	const handleSubmit = async (event) => {
 		event.preventDefault();
 		setIsSubmitting(true);
-		setError("");
 
 		try {
 			await createAid({
@@ -141,11 +141,12 @@ const AidRequestForm = () => {
 					city: formData.location.city.trim(),
 				},
 			});
-
-			setIsSubmitted(true);
+			showAlert("Aid request submitted successfully.", { variant: "success" });
 			setFormData(initialFormState);
 		} catch (error) {
-			setError(error.response?.data?.message || "Unable to submit aid request.");
+			showAlert(error.response?.data?.message || "Unable to submit aid request.", {
+				variant: "error",
+			});
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -154,10 +155,19 @@ const AidRequestForm = () => {
 	return (
 		<div className="page-shell">
 			<div className="container" style={{ maxWidth: "1240px" }}>
-				<div style={{ marginBottom: "1.5rem"  }}>
+				<div
+					className="page-card"
+					style={{
+						marginBottom: "1.5rem",
+						padding: "1.35rem 1.4rem",
+						border: "1px solid rgba(191, 219, 254, 0.72)",
+						background: "linear-gradient(180deg, rgba(248, 251, 255, 0.98), rgba(242, 246, 255, 0.92))",
+						boxShadow: "0 8px 26px rgba(17, 40, 81, 0.08)",
+					}}
+				>
 					<span className="section-label " style={{color:"#192bc2"}}>rebuild with rebuildhub</span>
-                  
-					<h1 className="page-title">  <ImAidKit />     Submit Your Aid Request</h1>
+
+					<h1 className="page-title" style={{ fontSize: "2.2rem", lineHeight: 1.08 }}><ImAidKit size={35} style={{ marginRight: "0.5rem" }} />Submit Your Aid Request</h1>
 					<p className="page-subtitle" style={{ maxWidth: "760px" }}>
 						Submit only the fields required by the aid API and save them directly to the database.
 						 Ensure all address details are precise for localized distribution.
@@ -173,13 +183,6 @@ const AidRequestForm = () => {
 					}}
 				>
 					<form onSubmit={handleSubmit} className="page-card" style={{ padding: "1.5rem" }}>
-						{error && <p className="empty-state" style={{ color: "#b4232c", marginBottom: "1rem" }}>{error}</p>}
-
-						{isSubmitted && (
-							<div className="empty-state" style={{ color: "#0f5132", borderStyle: "solid", marginBottom: "1rem" }}>
-								Aid request submitted successfully.
-							</div>
-						)}
 
 						<div style={{ marginBottom: "1.2rem" }}>
 							<h3 style={{ marginBottom: "0.45rem", fontSize: "1.05rem" }}><FaFingerprint color="#2563EB"  style={{ marginRight: "0.45rem" }}/>     Request Identification</h3>
@@ -200,7 +203,7 @@ const AidRequestForm = () => {
 							<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.85rem" }}>
 								<div>
 									<label style={{ display: "block", fontSize: "0.69rem", letterSpacing: "0.07em", textTransform: "uppercase", color: "#5f79ac", marginBottom: "0.5rem" }}>
-										Food Category
+										Aid Category
 									</label>
 									<select name="aidType" value={formData.aidType} onChange={handleChange}>
 										{aidTypes.map((type) => (
@@ -210,15 +213,16 @@ const AidRequestForm = () => {
 								</div>
 								<div>
 									<label style={{ display: "block", fontSize: "0.69rem", letterSpacing: "0.07em", textTransform: "uppercase", color: "#5f79ac", marginBottom: "0.5rem" }}>
-										Quantity(No of People)
+										{isMoneyAid ? "Amount (LKR)" : "Quantity (No of People)"}
 									</label>
 									<input
 										name="quantity"
 										value={formData.quantity}
 										onChange={handleChange}
-										placeholder="Enter amount"
+										placeholder={isMoneyAid ? "Enter amount in rupees" : "Enter number of people"}
 										type="number"
 										min="1"
+										step={isMoneyAid ? "1" : "1"}
 										required
 									/>
 								</div>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, CreditCard, Package, User, DollarSign, Heart, Shield, TrendingDown, CheckCircle, AlertTriangle } from 'lucide-react';
+import { X, CreditCard, Package, AlertCircle, User, Mail, DollarSign, Heart, Shield, TrendingDown, CheckCircle, AlertTriangle } from 'lucide-react';
+import { useAlert } from '../../context/AlertContext';
 
 const DonationForm = ({ initialItem, onClose }) => {
   const navigate = useNavigate();
@@ -27,6 +29,7 @@ const DonationForm = ({ initialItem, onClose }) => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [isLowStock, setIsLowStock] = useState(false);
   const [selectedMoneyFund, setSelectedMoneyFund] = useState(initialItem || null);
+  const { showAlert } = useAlert();
 
   // Fetch inventory for stock selection if no initialItem
   const fetchInventory = useCallback(async () => {
@@ -368,6 +371,7 @@ const DonationForm = ({ initialItem, onClose }) => {
       const result = await response.json();
       console.log('Donation successful:', result);
       setSubmitSuccess(true);
+      showAlert('Donation submitted successfully.', { variant: 'success' });
       
       setTimeout(() => {
         if (onClose) {
@@ -380,6 +384,7 @@ const DonationForm = ({ initialItem, onClose }) => {
     } catch (error) {
       console.error('Donation submission error:', error);
       setErrors({ submit: error.message || 'Failed to submit donation. Please try again.' });
+      showAlert(error.message || 'Failed to submit donation. Please try again.', { variant: 'error' });
     } finally {
       setIsSubmitting(false);
     }

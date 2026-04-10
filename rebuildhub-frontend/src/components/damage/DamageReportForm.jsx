@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getDisasters } from "../../services/disasterService";
 import { submitDamageReport } from "../../services/damageService";
+import { useAlert } from "../../context/AlertContext";
 
 const DamageReportForm = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [disasters, setDisasters] = useState([]);
   const [form, setForm] = useState({
     disasterId: "",
@@ -17,6 +19,7 @@ const DamageReportForm = () => {
   });
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     getDisasters().then(res => setDisasters(res.data));
@@ -69,10 +72,12 @@ const DamageReportForm = () => {
 
     try {
       await submitDamageReport(data);
-      alert("Damage report submitted!");
-      window.location.href = "/disasters";
+      showAlert("Damage report submitted! Redirecting...", { variant: "success" });
+      setTimeout(() => {
+        navigate("/disasters");
+      }, 1200);
     } catch (err) {
-      alert(err?.response?.data?.message || "Submission failed");
+      showAlert(err?.response?.data?.message || "Submission failed", { variant: "error" });
     } finally {
       setLoading(false);
     }
@@ -90,26 +95,100 @@ const DamageReportForm = () => {
             </p>
           </div>
         </div>
-        <form onSubmit={handleSubmit} className="page-card detail-stack">
-          <select name="disasterId" value={form.disasterId} onChange={handleChange} required>
-            <option value="">Select Disaster</option>
-            {verifiedDisasters.map(d => <option key={d._id} value={d._id}>{d.title}</option>)}
-          </select>
-          {verifiedDisasters.length === 0 && (
-            <p className="empty-state">No verified disasters available yet. Reports can be submitted only after admin verifies a disaster.</p>
-          )}
-          <input name="reporterName" placeholder="Your Name" value={form.reporterName} onChange={handleChange} required />
-          <input name="contactNumber" placeholder="Contact Number" value={form.contactNumber} onChange={handleChange} required />
-          <select name="damageType" value={form.damageType} onChange={handleChange}>
-            <option>Infrastructure</option><option>Housing</option><option>Medical</option><option>Agriculture</option><option>Other</option>
-          </select>
-          <textarea name="damageDescription" placeholder="Describe damage" value={form.damageDescription} onChange={handleChange} required />
-          <input name="estimatedLoss" placeholder="Estimated Loss (LKR)" type="number" value={form.estimatedLoss} onChange={handleChange} />
-          <input name="location.latitude" placeholder="Latitude" type="number" step="any" value={form.location.latitude} onChange={handleChange} />
-          <input name="location.longitude" placeholder="Longitude" type="number" step="any" value={form.location.longitude} onChange={handleChange} />
-          <input name="location.address" placeholder="Address" value={form.location.address} onChange={handleChange} />
-          <input type="file" multiple accept="image/*" onChange={handleFileChange} />
-          <button type="submit" className="btn-primary" disabled={loading}>{loading ? "Submitting..." : "Submit Report"}</button>
+        <form onSubmit={handleSubmit} className="page-card detail-stack damage-form">
+          <div className="form-head">
+            <div>
+              <span className="form-kicker">Field capture</span>
+              <h2>Damage report intake</h2>
+              <p>Link evidence, impacts, and location details to support verification and response.</p>
+            </div>
+            <div className="form-badge">Verified Only</div>
+          </div>
+
+          <div className="form-section">
+            <div className="form-section__head">
+              <span className="form-kicker">Disaster link</span>
+              <h3>Select the incident record</h3>
+              <p>Reports are accepted only for admin verified disasters.</p>
+            </div>
+            <div className="form-grid">
+              <div className="field field--full">
+                <label className="field-label" htmlFor="damage-disaster">Verified disaster</label>
+                <select id="damage-disaster" name="disasterId" value={form.disasterId} onChange={handleChange} required>
+                  <option value="">Select Disaster</option>
+                  {verifiedDisasters.map(d => <option key={d._id} value={d._id}>{d.title}</option>)}
+                </select>
+              </div>
+            </div>
+            {verifiedDisasters.length === 0 && (
+              <div className="alert alert--warning">
+                No verified disasters available yet. Reports can be submitted only after admin verifies a disaster.
+              </div>
+            )}
+          </div>
+
+          <div className="form-grid">
+            <div className="field">
+              <label className="field-label" htmlFor="damage-reporter">Reporter name</label>
+              <input id="damage-reporter" name="reporterName" placeholder="Your Name" value={form.reporterName} onChange={handleChange} required />
+            </div>
+            <div className="field">
+              <label className="field-label" htmlFor="damage-contact">Contact number</label>
+              <input id="damage-contact" name="contactNumber" placeholder="Contact Number" value={form.contactNumber} onChange={handleChange} required />
+            </div>
+            <div className="field">
+              <label className="field-label" htmlFor="damage-type">Damage category</label>
+              <select id="damage-type" name="damageType" value={form.damageType} onChange={handleChange}>
+                <option>Infrastructure</option><option>Housing</option><option>Medical</option><option>Agriculture</option><option>Other</option>
+              </select>
+            </div>
+            <div className="field">
+              <label className="field-label" htmlFor="damage-loss">Estimated loss (LKR)</label>
+              <input id="damage-loss" name="estimatedLoss" placeholder="Estimated Loss (LKR)" type="number" value={form.estimatedLoss} onChange={handleChange} />
+            </div>
+            <div className="field field--full">
+              <label className="field-label" htmlFor="damage-description">Situation summary</label>
+              <textarea id="damage-description" name="damageDescription" placeholder="Describe damage" value={form.damageDescription} onChange={handleChange} required rows={4} />
+            </div>
+            <div className="field field--full">
+              <label className="field-label" htmlFor="damage-evidence">Evidence photos</label>
+              <label className="file-drop" htmlFor="damage-evidence">
+                <input id="damage-evidence" className="file-drop__input" type="file" multiple accept="image/*" onChange={handleFileChange} />
+                <span className="file-drop__title">Drop images or click to upload</span>
+                <span className="file-drop__meta">
+                  {images.length ? `${images.length} file(s) selected` : "PNG or JPG, up to 5 files"}
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <div className="form-section__head">
+              <span className="form-kicker">Location signal</span>
+              <h3>Pin the affected area</h3>
+              <p>Provide coordinates and an address so teams can validate the impact zone.</p>
+            </div>
+            <div className="form-grid form-grid--compact">
+              <div className="field">
+                <label className="field-label" htmlFor="damage-latitude">Latitude</label>
+                <input id="damage-latitude" name="location.latitude" placeholder="Latitude" type="number" step="any" value={form.location.latitude} onChange={handleChange} />
+              </div>
+              <div className="field">
+                <label className="field-label" htmlFor="damage-longitude">Longitude</label>
+                <input id="damage-longitude" name="location.longitude" placeholder="Longitude" type="number" step="any" value={form.location.longitude} onChange={handleChange} />
+              </div>
+              <div className="field">
+                <label className="field-label" htmlFor="damage-address">Address</label>
+                <input id="damage-address" name="location.address" placeholder="Address" value={form.location.address} onChange={handleChange} />
+              </div>
+            </div>
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? "Submitting..." : "Submit Report"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

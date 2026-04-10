@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { clearAuthSession } from "../../services/authSession";
+import { useAlert } from "../../context/AlertContext";
 import "./AdminVolunteerManagement.css";
 import "../../assets/styles/global.css";
 
@@ -27,6 +28,7 @@ const AdminVolunteerManagement = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const { showAlert, showConfirm } = useAlert();
 
   useEffect(() => {
     fetchVolunteers();
@@ -59,13 +61,19 @@ const AdminVolunteerManagement = () => {
   };
 
   const deleteVolunteer = async (id) => {
-    if (window.confirm("Are you sure you want to delete this volunteer?")) {
-      try {
-        await axios.delete(`http://localhost:5000/api/volunteers/${id}`);
-        fetchVolunteers();
-      } catch (error) {
-        console.error("Error deleting volunteer:", error);
-      }
+    const confirmed = await showConfirm("Are you sure you want to delete this volunteer?", {
+      confirmLabel: "Delete",
+      variant: "warning",
+    });
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`http://localhost:5000/api/volunteers/${id}`);
+      fetchVolunteers();
+      showAlert("Volunteer deleted successfully.", { variant: "success" });
+    } catch (error) {
+      console.error("Error deleting volunteer:", error);
+      showAlert("Failed to delete volunteer. Please try again.", { variant: "error" });
     }
   };
 

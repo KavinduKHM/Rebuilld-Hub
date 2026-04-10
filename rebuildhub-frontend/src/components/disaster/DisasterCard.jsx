@@ -58,6 +58,7 @@ const DisasterCard = ({ disaster, index = 0 }) => {
   const severityLabel = formatSeverity(disaster.severityLevel);
   const severityTone = getSeverityTone(disaster.severityLevel);
   const updatedLabel = formatTimeAgo(disaster.updatedAt || disaster.createdAt);
+  const isVerified = normalizeText(disaster.verificationStatus) === "Verified";
   const heroImage = disaster.images?.[0];
   const mediaStyle = heroImage
     ? {
@@ -96,23 +97,29 @@ const DisasterCard = ({ disaster, index = 0 }) => {
           <Link to={`/disasters/${disaster._id}`} className="btn-secondary">
             Inspect
           </Link>
-          <Link
-            to="/reports/new"
-            state={{
-              prefillReport: {
-                disasterId: disaster._id,
-                damageDescription: normalizeText(disaster.description),
-                location: {
-                  latitude: disaster.location?.latitude ?? "",
-                  longitude: disaster.location?.longitude ?? "",
-                  address: disaster.location?.address || disaster.location?.name || "",
+          {isVerified ? (
+            <Link
+              to="/reports/new"
+              state={{
+                prefillReport: {
+                  disasterId: disaster._id,
+                  damageDescription: normalizeText(disaster.description),
+                  location: {
+                    latitude: disaster.location?.latitude ?? "",
+                    longitude: disaster.location?.longitude ?? "",
+                    address: disaster.location?.address || disaster.location?.name || "",
+                  },
                 },
-              },
-            }}
-            className="btn-primary"
-          >
-            Report Damage
-          </Link>
+              }}
+              className="btn-primary"
+            >
+              Report Damage
+            </Link>
+          ) : (
+            <span className="btn-primary btn-disabled" aria-disabled="true" title="Available after admin verification">
+              Report Damage
+            </span>
+          )}
         </div>
       </div>
     </article>
