@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   X, Package, DollarSign, Heart, Shield, 
-  AlertTriangle, User, Mail, CheckCircle, 
-  Lock, Building, Loader2, Globe, CreditCard
+  AlertTriangle, CheckCircle,
+  Lock, Globe, CreditCard
 } from 'lucide-react';
 import { useAlert } from '../../context/AlertContext';
 
@@ -50,7 +50,6 @@ const DonationFlow = ({ onClose }) => {
   
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
-  const [inventoryList, setInventoryList] = useState([]);
   const [categories, setCategories] = useState([]);
   const [itemsByCategory, setItemsByCategory] = useState({});
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -77,28 +76,7 @@ const DonationFlow = ({ onClose }) => {
     return { minAmount: MIN_DONATION_AMOUNT, stepAmount: DONATION_STEP };
   };
 
-  // Check for payment return parameters - runs when component mounts and when URL changes
-  useEffect(() => {
-    const checkPaymentStatus = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const paymentStatus = urlParams.get('payment');
-      const sessionId = urlParams.get('session_id');
-      const donationId = urlParams.get('donation_id');
-      
-      console.log("=== PAYMENT RETURN CHECK ===");
-      console.log("Payment status:", paymentStatus);
-      console.log("Session ID:", sessionId);
-      console.log("Donation ID:", donationId);
-      
-      if (paymentStatus === 'success' && sessionId && !isVerifying) {
-        verifyPayment(sessionId, donationId);
-      }
-    };
-    
-    checkPaymentStatus();
-  }, []);
-
-  const verifyPayment = async (sessionId, donationId) => {
+  const verifyPayment = useCallback(async (sessionId, donationId) => {
     if (isVerifying) return;
     setIsVerifying(true);
     
@@ -134,7 +112,28 @@ const DonationFlow = ({ onClose }) => {
     } finally {
       setIsVerifying(false);
     }
-  };
+  }, [isVerifying, navigate, onClose]);
+
+  // Check for payment return parameters - runs when component mounts and when URL changes
+  useEffect(() => {
+    const checkPaymentStatus = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentStatus = urlParams.get('payment');
+      const sessionId = urlParams.get('session_id');
+      const donationId = urlParams.get('donation_id');
+      
+      console.log("=== PAYMENT RETURN CHECK ===");
+      console.log("Payment status:", paymentStatus);
+      console.log("Session ID:", sessionId);
+      console.log("Donation ID:", donationId);
+      
+      if (paymentStatus === 'success' && sessionId && !isVerifying) {
+        verifyPayment(sessionId, donationId);
+      }
+    };
+    
+    checkPaymentStatus();
+  }, [isVerifying, verifyPayment]);
 
   // Fetch inventory data
   useEffect(() => {
@@ -145,7 +144,6 @@ const DonationFlow = ({ onClose }) => {
     try {
       const response = await fetch('http://localhost:5000/Rebuildhub/inventory');
       const data = await response.json();
-      setInventoryList(data);
       
       const stockItems = data.filter(item => item.type === 'STOCK');
       const uniqueCategories = [...new Set(stockItems.map(item => item.category).filter(Boolean))];
@@ -173,6 +171,7 @@ const DonationFlow = ({ onClose }) => {
   // Validation functions
   const validateDonorName = (name) => {
     if (!name?.trim()) return 'Donor name is required';
+    if (/\d/.test(name)) return 'Name cannot contain numbers';
     if (name.length < 2) return 'Name must be at least 2 characters';
     return null;
   };
@@ -243,6 +242,16 @@ const DonationFlow = ({ onClose }) => {
 
   const handleStockChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'donorName') {
+      const sanitizedValue = value.replace(/\d/g, '');
+      setStockForm(prev => ({ ...prev, donorName: sanitizedValue }));
+      if (touched.donorName) {
+        setErrors(prev => ({ ...prev, donorName: validateDonorName(sanitizedValue) }));
+      }
+      return;
+    }
+
     setStockForm(prev => ({ ...prev, [name]: value }));
 
     if (name === 'email') {
@@ -256,6 +265,16 @@ const DonationFlow = ({ onClose }) => {
 
   const handleMoneyChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'donorName') {
+      const sanitizedValue = value.replace(/\d/g, '');
+      setMoneyForm(prev => ({ ...prev, donorName: sanitizedValue }));
+      if (touched.donorName) {
+        setErrors(prev => ({ ...prev, donorName: validateDonorName(sanitizedValue) }));
+      }
+      return;
+    }
+
     setMoneyForm(prev => ({ ...prev, [name]: value }));
 
     if (name === 'email') {

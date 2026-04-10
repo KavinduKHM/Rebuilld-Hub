@@ -54,6 +54,7 @@ export default function ResourceAllocation({ open, onClose }) {
     const errs = {};
     if (!form.donorName.trim()) errs.donorName = "Full name is required";
     else if (form.donorName.trim().length < 3) errs.donorName = "Name must be at least 3 characters";
+    else if (/\d/.test(form.donorName)) errs.donorName = "Name cannot contain numbers";
 
     if (!form.donorNIC.trim()) errs.donorNIC = "NIC number is required";
     else if (!/^([0-9]{9}[vVxX]|[0-9]{12})$/.test(form.donorNIC.trim()))
@@ -81,6 +82,14 @@ export default function ResourceAllocation({ open, onClose }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "donorName") {
+      const sanitizedValue = value.replace(/\d/g, "");
+      setForm((p) => ({ ...p, donorName: sanitizedValue }));
+      setErrors((p) => ({ ...p, donorName: "" }));
+      return;
+    }
+
     if (name === "type") {
       setForm((p) => ({ ...p, type: value, inventoryId: "" }));
     } else {

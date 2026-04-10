@@ -56,7 +56,7 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
   };
 
   const getMinAmount = (currencyCode, isInternational) => {
-    if (!isInternational) return 100;
+    if (!isInternational) return 200;
     const currency = currencies.find(c => c.code === currencyCode);
     return currency?.minAmount || 5;
   };
@@ -85,12 +85,16 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
     if (amount < minAmount) {
       return `Minimum donation amount is ${getCurrencySymbol(currency)}${minAmount.toLocaleString()}`;
     }
+    if (!isInternational && Number(amount) % 50 !== 0) {
+      return 'Amount should increase by LKR 50';
+    }
     if (amount > 10000000) return `Maximum donation amount is ${isInternational ? 'equivalent to' : 'LKR'} 10,000,000`;
     return null;
   };
 
   const validateDonorName = (name) => {
     if (!name || name.trim() === '') return 'Donor name is required';
+    if (/\d/.test(name)) return 'Name cannot contain numbers';
     if (name.length < 2) return 'Name must be at least 2 characters';
     if (name.length > 100) return 'Name must be less than 100 characters';
     return null;
@@ -134,6 +138,17 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'donorName') {
+      const sanitizedValue = value.replace(/\d/g, '');
+      setFormData(prev => ({ ...prev, donorName: sanitizedValue }));
+      if (touched.donorName) {
+        const error = validateDonorName(sanitizedValue);
+        setErrors(prev => ({ ...prev, donorName: error }));
+      }
+      return;
+    }
+
     setFormData(prev => ({ ...prev, [name]: value }));
     
     if (touched[name]) {
@@ -485,7 +500,7 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
                   onChange={handleChange}
                   onBlur={() => handleFieldBlur('amount')}
                   min={getMinAmount(formData.currency, formData.isInternational)}
-                  step={formData.isInternational && formData.currency === 'JPY' ? 1 : 100}
+                  step={formData.isInternational ? 1 : 50}
                   className={`w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
                     errors.amount && touched.amount ? 'border-red-500' : 'border-blue-200'
                   }`}
@@ -509,7 +524,7 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
               <div className="mt-2 flex gap-2 flex-wrap">
                 {!formData.isInternational ? (
                   // Local quick amounts
-                  [500, 1000, 5000, 10000].map(amt => (
+                  [200, 250, 500, 1000].map(amt => (
                     <button
                       key={amt}
                       type="button"
