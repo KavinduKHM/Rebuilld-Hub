@@ -68,8 +68,11 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
         newErrors.totalQuantity = 'Quantity cannot be negative';
       }
     } else if (formData.type === 'MONEY') {
-      if (formData.totalAmount < 0) {
-        newErrors.totalAmount = 'Amount cannot be negative';
+      const moneyAmount = Number(formData.totalAmount);
+      if (!Number.isInteger(moneyAmount)) {
+        newErrors.totalAmount = 'Amount must be a whole number (no decimals)';
+      } else if (moneyAmount <= 0) {
+        newErrors.totalAmount = 'Amount must be greater than 0';
       }
     }
 
@@ -97,7 +100,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
           totalQuantity: formData.totalQuantity || 0
         }),
         ...(formData.type === 'MONEY' && {
-          totalAmount: formData.totalAmount || 0
+          totalAmount: Number(formData.totalAmount) || 0
         })
       };
       
@@ -114,12 +117,39 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
 
   const handleChange = (e) => {
     const { name, value, type: inputType } = e.target;
+
+    if ((name === 'totalQuantity' || name === 'totalAmount') && value !== '' && !/^\d+$/.test(value)) {
+      setErrors(prev => ({ ...prev, [name]: 'Only non-negative whole numbers are allowed' }));
+      return;
+    }
+
+    const parsedNumber = (() => {
+      if (inputType !== 'number') return value;
+      if (value === '') return name === 'totalAmount' ? '' : 0;
+      if (name === 'totalAmount') return Number.parseInt(value, 10) || 0;
+      return parseFloat(value) || 0;
+    })();
+
     setFormData(prev => ({
       ...prev,
-      [name]: inputType === 'number' ? parseFloat(value) || 0 : value
+      [name]: parsedNumber
     }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleNumberKeyDown = (event) => {
+    if (['-', '+', '.', 'e', 'E'].includes(event.key)) {
+      event.preventDefault();
+    }
+  };
+
+  const handleNumberPaste = (event, fieldName) => {
+    const pastedText = event.clipboardData?.getData('text') || '';
+    if (pastedText && !/^\d+$/.test(pastedText.trim())) {
+      event.preventDefault();
+      setErrors(prev => ({ ...prev, [fieldName]: 'Only non-negative whole numbers are allowed' }));
     }
   };
 
@@ -244,8 +274,16 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none inventory-modal__input"
                     >
                       <option value="Food">Food</option>
-                      <option value="Cloth">Clothing</option>
-                      <option value="Sanitory">Sanitary</option>
+                      <option value="Clothing - Child">Clothing - Child</option>
+                      <option value="Clothing - Adult">Clothing - Adult</option>
+                      <option value="Clothing - Male">Clothing - Male</option>
+                      <option value="Clothing - Female">Clothing - Female</option>
+                      <option value="Sanitary Items">Sanitary Items</option>
+                      <option value="Medicines">Medicines</option>
+                      <option value="Water & Beverages">Water & Beverages</option>
+                      <option value="Shelter Supplies">Shelter Supplies</option>
+                      <option value="Baby Care">Baby Care</option>
+                      <option value="Other Essentials">Other Essentials</option>
                     </select>
                   </div>
 
@@ -275,10 +313,13 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
                       name="totalQuantity"
                       value={formData.totalQuantity}
                       onChange={handleChange}
+                      onKeyDown={handleNumberKeyDown}
+                      onPaste={(event) => handleNumberPaste(event, 'totalQuantity')}
                       min="0"
                       step="1"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none inventory-modal__input"
                     />
+                    {errors.totalQuantity && <p className="mt-1 text-xs text-red-500">{errors.totalQuantity}</p>}
                   </div>
                 </>
               )}
@@ -294,10 +335,15 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
                     name="totalAmount"
                     value={formData.totalAmount}
                     onChange={handleChange}
+                    onKeyDown={handleNumberKeyDown}
+                    onPaste={(event) => handleNumberPaste(event, 'totalAmount')}
                     min="0"
-                    step="0.01"
+                    step="50"
+                    inputMode="numeric"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none inventory-modal__input"
                   />
+                  <p className="mt-1 text-xs text-gray-500">Use whole numbers only. Step increment is 50.</p>
+                  {errors.totalAmount && <p className="mt-1 text-xs text-red-500">{errors.totalAmount}</p>}
                 </div>
               )}
 

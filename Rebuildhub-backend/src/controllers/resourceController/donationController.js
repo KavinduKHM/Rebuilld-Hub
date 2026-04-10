@@ -57,7 +57,18 @@ exports.createCheckoutSession = async (req, res) => {
     console.log("✅ Donation saved with ID:", savedDonation._id);
     
     // Create Stripe Checkout Session
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    let frontendBaseUrl = 'http://localhost:3000';
+
+    try {
+      // Use only origin so env values like http://localhost:3000/resources don't duplicate paths.
+      frontendBaseUrl = new URL(frontendUrl).origin;
+    } catch (urlError) {
+      frontendBaseUrl = frontendUrl.replace(/\/$/, '');
+    }
+
+    const successUrl = `${frontendBaseUrl}/resources?payment=success&session_id={CHECKOUT_SESSION_ID}&donation_id=${savedDonation._id}`;
+    const cancelUrl = `${frontendBaseUrl}/resources?payment=canceled`;
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -74,8 +85,8 @@ exports.createCheckoutSession = async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: `${frontendUrl}/resources?payment=success&session_id={CHECKOUT_SESSION_ID}&donation_id=${savedDonation._id}`,
-      cancel_url: `${frontendUrl}/resources?payment=canceled`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       customer_email: email || undefined,
       metadata: {
         donationId: savedDonation._id.toString(),
@@ -96,6 +107,7 @@ exports.createCheckoutSession = async (req, res) => {
     
     console.log("✅ Checkout session created:", session.id);
     console.log("✅ Session URL:", session.url);
+    console.log("✅ Success return URL:", successUrl);
     
     res.status(200).json({ 
       success: true,

@@ -3,10 +3,13 @@ import {
   Edit,
   Trash2,
   ChevronDown,
-  Eye,
+  Search,
   DollarSign,
   Package,
-  MoreVertical
+  MoreVertical,
+  CheckCircle,
+  XCircle,
+  AlertTriangle
 } from 'lucide-react';
 
 const InventoryTable = ({ 
@@ -19,14 +22,22 @@ const InventoryTable = ({
 }) => {
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
 
   // Filter inventory
   const filteredInventory = inventory.filter(item => {
     const matchesCategory = categoryFilter === 'ALL' || item.category === categoryFilter;
     const matchesStatus = statusFilter === 'ALL' || item.status === statusFilter;
-    return matchesCategory && matchesStatus;
+    const matchesSearch = !normalizedSearchTerm
+      || (item.name || '').toLowerCase().includes(normalizedSearchTerm)
+      || (item.inventoryCode || '').toLowerCase().includes(normalizedSearchTerm)
+      || (item.category || '').toLowerCase().includes(normalizedSearchTerm)
+      || (item.type || '').toLowerCase().includes(normalizedSearchTerm);
+    return matchesCategory && matchesStatus && matchesSearch;
   });
 
   const categoryOptions = useMemo(() => {
@@ -48,9 +59,7 @@ const InventoryTable = ({
     const styles = {
       'Available': 'resource-status resource-status--available',
       'Low Stock': 'resource-status resource-status--low',
-      'Out of Stock': 'resource-status resource-status--critical',
-      'Not available': 'resource-status resource-status--muted',
-      'Low Amount': 'resource-status resource-status--low'
+      'Out of Stock': 'resource-status resource-status--critical'
     };
     return styles[status] || 'resource-status resource-status--muted';
   };
@@ -61,18 +70,42 @@ const InventoryTable = ({
     return 'Inspected';
   };
 
-  const maxStockValue = useMemo(() => {
-    const values = (filteredInventory || []).map((item) => {
-      if (item.type === 'MONEY') return Number(item.totalAmount || 0);
-      return Number(item.totalQuantity || 0);
-    });
+  const maxStockQuantity = useMemo(() => {
+    const values = (filteredInventory || [])
+      .filter((item) => item.type === 'STOCK')
+      .map((item) => Number(item.totalQuantity || 0));
     return Math.max(1, ...values);
   }, [filteredInventory]);
+
+  const getStockLevelBarWidth = (item) => {
+    if (item.type === 'MONEY') {
+      const amount = Number(item.totalAmount || 0);
+      // Align with backend status logic where 1000+ is considered healthy/available.
+      return Math.min(100, Math.round((amount / 1000) * 100));
+    }
+
+    const quantity = Number(item.totalQuantity || 0);
+    return Math.min(100, Math.round((quantity / maxStockQuantity) * 100));
+  };
 
   const getTypeIcon = (type) => {
     return type === 'MONEY'
       ? <DollarSign className="h-4 w-4" />
       : <Package className="h-4 w-4" />;
+  };
+
+  const getStatusIcon = (status) => {
+    if (status === 'Available') return <CheckCircle className="h-3.5 w-3.5" />;
+    if (status === 'Low Stock' || status === 'Low Amount') return <AlertTriangle className="h-3.5 w-3.5" />;
+    if (status === 'Out of Stock') return <XCircle className="h-3.5 w-3.5" />;
+    return <Package className="h-3.5 w-3.5" />;
+  };
+
+  const formatTimestamp = (value) => {
+    if (!value) return 'No timestamp available';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return 'No timestamp available';
+    return parsed.toLocaleString();
   };
 
   return (
@@ -108,8 +141,22 @@ const InventoryTable = ({
             </div>
           </label>
         </div>
-        <div className="resource-table__meta">
-          Viewing {Math.min(startIndex + itemsPerPage, filteredInventory.length)} of {filteredInventory.length}
+        <div className="resource-table__tools">
+          <label className="resource-table__search" aria-label="Search inventory">
+            <Search className="h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Search inventory"
+              value={searchTerm}
+              onChange={(event) => {
+                setSearchTerm(event.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </label>
+          <div className="resource-table__meta">
+            Viewing {Math.min(startIndex + itemsPerPage, filteredInventory.length)} of {filteredInventory.length}
+          </div>
         </div>
       </div>
 
@@ -123,7 +170,6 @@ const InventoryTable = ({
               <th>Stock Level</th>
               <th>Condition</th>
               <th>Status</th>
-              <th>Timestamp</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -132,7 +178,10 @@ const InventoryTable = ({
               <tr key={item._id}>
                 <td>
                   <div className="resource-table__item">
-                    <span className="resource-table__icon" aria-hidden="true">
+                    <span
+                      className={`resource-table__icon ${item.type === 'MONEY' ? 'resource-table__icon--money' : 'resource-table__icon--stock'}`}
+                      aria-hidden="true"
+                    >
                       {getTypeIcon(item.type)}
                     </span>
                     <div>
@@ -157,7 +206,7 @@ const InventoryTable = ({
                     <div className="resource-table__bar">
                       <span
                         style={{
-                          width: `${Math.min(100, Math.round(((item.type === 'MONEY' ? Number(item.totalAmount || 0) : Number(item.totalQuantity || 0)) / maxStockValue) * 100))}%`
+                          width: `${getStockLevelBarWidth(item)}%`
                         }}
                       />
                     </div>
@@ -167,24 +216,18 @@ const InventoryTable = ({
                   <span className="resource-table__condition">{getConditionLabel(item)}</span>
                 </td>
                 <td>
-                  <span className={getStatusBadge(item.status)}>{item.status || 'Unknown'}</span>
-                </td>
-                <td>
-                  <div className="resource-table__timestamp">{item.updatedAt ? new Date(item.updatedAt).toLocaleString() : '-'}</div>
+                  <span className={getStatusBadge(item.status)}>
+                    <span className="resource-status__icon" aria-hidden="true">{getStatusIcon(item.status)}</span>
+                    {item.status || 'Unknown'}
+                  </span>
                 </td>
                 <td>
                   <div className="resource-table__actions">
-                    <button
-                      type="button"
-                      onClick={() => onView && onView(item)}
-                      title="View Details"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
                     {isAdmin && (
                       <>
                         <button
                           type="button"
+                          className="resource-table__action-btn resource-table__action-btn--edit"
                           onClick={() => onEdit && onEdit(item)}
                           title="Edit"
                         >
@@ -192,6 +235,7 @@ const InventoryTable = ({
                         </button>
                         <button
                           type="button"
+                          className="resource-table__action-btn resource-table__action-btn--delete"
                           onClick={() => onDelete && onDelete(item)}
                           title="Delete"
                         >
@@ -199,8 +243,11 @@ const InventoryTable = ({
                         </button>
                       </>
                     )}
-                    <span className="resource-table__menu" aria-hidden="true">
-                      <MoreVertical className="h-4 w-4" />
+                    <span className="resource-table__menu-wrapper">
+                      <span className="resource-table__menu" aria-label="Item timestamp">
+                        <MoreVertical className="h-4 w-4" />
+                      </span>
+                      <span className="resource-table__menu-tooltip">Updated: {formatTimestamp(item.updatedAt)}</span>
                     </span>
                   </div>
                 </td>
