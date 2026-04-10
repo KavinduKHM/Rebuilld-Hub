@@ -11,6 +11,7 @@ import DonationForm from '../../components/resource/DonationForm';
 import MoneyDonationForm from '../../components/resource/MoneyDonationForm';
 import DonationFlow from '../../components/resource/DonationFlow'; // This is actually DonationFlow
 import { useAlert } from '../../context/AlertContext';
+import { API_BASE_URL } from '../../services/api';
 import "./ResourcePage.css";
 
 const ResourcePage = () => {
@@ -62,7 +63,7 @@ const ResourcePage = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('http://localhost:5000/Rebuildhub/inventory');
+      const response = await fetch(`${API_BASE_URL}/Rebuildhub/inventory`);
       if (!response.ok) {
         throw new Error('Failed to fetch inventory');
       }
@@ -83,7 +84,7 @@ const ResourcePage = () => {
   const verifyPayment = async (sessionId, donationId) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/Rebuildhub/donations/verify-payment?session_id=${sessionId}&donation_id=${donationId || ''}`
+        `${API_BASE_URL}/Rebuildhub/donations/verify-payment?session_id=${sessionId}&donation_id=${donationId || ''}`
       );
       const result = await response.json();
 

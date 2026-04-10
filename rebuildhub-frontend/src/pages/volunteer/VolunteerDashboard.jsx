@@ -11,6 +11,7 @@ import ProfileEditor from "./components/ProfileEditor";
 import { clearAuthSession, getAuthSession } from "../../services/authSession";
 import { getDisasters } from "../../services/disasterService";
 import { useAlert } from "../../context/AlertContext";
+import { API_BASE_URL } from "../../services/api";
 
 // Demo events data for fallback (moved inside component scope)
 const demoEvents = [
@@ -136,7 +137,7 @@ const VolunteerDashboard = () => {
 
     try {
       if (sessionUser?.email) {
-        const allResponse = await axios.get("http://localhost:5000/api/volunteers");
+        const allResponse = await axios.get(`${API_BASE_URL}/api/volunteers`);
         const records = asArray(allResponse.data);
         const matched = records.find(
           (item) => (item?.email || "").toLowerCase() === sessionUser.email.toLowerCase(),
@@ -151,7 +152,7 @@ const VolunteerDashboard = () => {
       if (sessionVolunteerId) {
         try {
           const response = await axios.get(
-            `http://localhost:5000/api/volunteers/${sessionVolunteerId}`,
+            `${API_BASE_URL}/api/volunteers/${sessionVolunteerId}`,
           );
           const profile = asObject(response.data);
 
@@ -187,7 +188,7 @@ const VolunteerDashboard = () => {
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
-      const url = `http://localhost:5000/api/events/live?location=${selectedLocation}&category=${selectedCategory}&days=30&limit=100`;
+      const url = `${API_BASE_URL}/api/events/live?location=${selectedLocation}&category=${selectedCategory}&days=30&limit=100`;
       const response = await axios.get(url);
       const liveEvents = asArray(response.data);
       setEvents(liveEvents);
@@ -198,8 +199,8 @@ const VolunteerDashboard = () => {
       try {
         const fallbackUrl =
           selectedLocation === "worldwide"
-            ? "http://localhost:5000/api/events"
-            : `http://localhost:5000/api/events?location=${selectedLocation}`;
+            ? `${API_BASE_URL}/api/events`
+            : `${API_BASE_URL}/api/events?location=${selectedLocation}`;
         const response = await axios.get(fallbackUrl);
         const fallbackEvents = asArray(response.data);
         setEvents(fallbackEvents);
@@ -235,7 +236,7 @@ const VolunteerDashboard = () => {
   const fetchCategories = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/events/categories",
+        `${API_BASE_URL}/api/events/categories`,
       );
       const categoryRows = asArray(response.data)
         .map((item) => ({ id: categoryId(item), name: categoryLabel(item) }))
@@ -288,7 +289,7 @@ const VolunteerDashboard = () => {
 
   const handleInterest = async ({ eventId, eventData }) => {
     try {
-      await axios.post(`http://localhost:5000/api/events/${eventId}/interest`, {
+      await axios.post(`${API_BASE_URL}/api/events/${eventId}/interest`, {
         volunteerId: volunteer._id || volunteer.volunteerId,
         eventData,
       });
@@ -322,7 +323,7 @@ const VolunteerDashboard = () => {
     }
 
     try {
-      await axios.post(`http://localhost:5000/api/disasters/${disasterId}/assign-volunteer`, {
+      await axios.post(`${API_BASE_URL}/api/disasters/${disasterId}/assign-volunteer`, {
         volunteerId: volunteer?._id || volunteer?.volunteerId,
         volunteerEmail: volunteer?.email,
       });

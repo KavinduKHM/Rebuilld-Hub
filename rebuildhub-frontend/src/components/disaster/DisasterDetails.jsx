@@ -10,6 +10,7 @@ import { getReportsByDisaster, verifyReport } from "../../services/damageService
 import { verifyDisaster } from "../../services/disasterService";
 import Loader from "../common/Loader";
 import { formatCurrencyLKR } from "../../utils/formatters";
+import { API_BASE_URL } from "../../services/api";
 
 // Fix Leaflet marker icons for React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -100,7 +101,7 @@ const DisasterDetails = () => {
     const email = session?.user?.email;
     if (!email) return null;
 
-    const response = await axios.get("http://localhost:5000/api/volunteers");
+    const response = await axios.get(`${API_BASE_URL}/api/volunteers`);
     const rows = Array.isArray(response.data) ? response.data : response.data?.data || [];
     const match = rows.find(
       (item) => (item?.email || "").toLowerCase() === email.toLowerCase(),
@@ -118,7 +119,7 @@ const DisasterDetails = () => {
       }
 
       const session = getAuthSession();
-      await axios.post(`http://localhost:5000/api/disasters/${id}/assign-volunteer`, {
+      await axios.post(`${API_BASE_URL}/api/disasters/${id}/assign-volunteer`, {
         volunteerId,
         volunteerEmail: session?.user?.email,
       });

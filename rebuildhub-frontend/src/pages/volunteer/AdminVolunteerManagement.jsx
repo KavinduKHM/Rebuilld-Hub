@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { clearAuthSession } from "../../services/authSession";
 import { useAlert } from "../../context/AlertContext";
+import { API_BASE_URL } from "../../services/api";
 import "./AdminVolunteerManagement.css";
 import "../../assets/styles/global.css";
 
@@ -36,7 +37,7 @@ const AdminVolunteerManagement = () => {
 
   const fetchVolunteers = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/volunteers");
+      const response = await axios.get(`${API_BASE_URL}/api/volunteers`);
       const payload = response.data;
       const rows = Array.isArray(payload) ? payload : payload?.data || [];
 
@@ -51,7 +52,7 @@ const AdminVolunteerManagement = () => {
 
   const updateStatus = async (id, status) => {
     try {
-      await axios.put(`http://localhost:5000/api/volunteers/${id}`, {
+      await axios.put(`${API_BASE_URL}/api/volunteers/${id}`, {
         verificationStatus: status,
       });
       fetchVolunteers();
@@ -68,7 +69,7 @@ const AdminVolunteerManagement = () => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/volunteers/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/volunteers/${id}`);
       fetchVolunteers();
       showAlert("Volunteer deleted successfully.", { variant: "success" });
     } catch (error) {
