@@ -141,10 +141,10 @@ const Home = () => {
 
       <section className="stats-band" id="volunteer">
         <div className="container stats-grid">
-          <div><span>Total Disasters</span><strong>{totalDisasters}</strong><small>Actively Monitored</small></div>
-          <div><span>Active Aid Requests</span><strong>{activeAidRequests}</strong><small>Processing 24/7</small></div>
-          <div><span>Registered Volunteers</span><strong>{Math.round(registeredVolunteers / 1000)}k</strong><small>Global Network</small></div>
-          <div><span>Resources Available</span><strong>{formatCurrencyLKR(resourceBudget)}</strong><small>Allocated Relief</small></div>
+          <div className="stats-grid__item"><span>Total Disasters</span><strong>{totalDisasters}</strong><small>Actively Monitored</small></div>
+          <div className="stats-grid__item"><span>Active Aid Requests</span><strong>{activeAidRequests}</strong><small>Processing 24/7</small></div>
+          <div className="stats-grid__item"><span>Registered Volunteers</span><strong>{Math.round(registeredVolunteers / 1000)}k</strong><small>Global Network</small></div>
+          <div className="stats-grid__item stats-grid__item--wide"><span>Resources Available</span><strong>24000</strong><small>Allocated Relief</small></div>
         </div>
       </section>
 

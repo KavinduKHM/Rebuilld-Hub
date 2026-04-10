@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatCurrencyLKR } from '../../utils/formatters';
 import { 
   Package, 
   DollarSign, 
@@ -29,7 +30,7 @@ const StatisticsCards = ({ stats }) => {
     },
     {
       title: 'Total Funds Available',
-      value: `$${(stats?.totalMoneyAmount || 0).toLocaleString()}`,
+      value: formatCurrencyLKR(stats?.totalMoneyAmount || 0),
       icon: DollarSign,
       color: 'bg-emerald-500',
       bgGradient: 'from-emerald-500 to-emerald-600',

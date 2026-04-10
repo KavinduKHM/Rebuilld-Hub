@@ -328,7 +328,7 @@ const InventoryForm = ({ isOpen, onClose, onSubmit, initialData, isEditing }) =>
               {formData.type === 'MONEY' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1 inventory-modal__label">
-                    Initial Amount (USD)
+                    Initial Amount (LKR)
                   </label>
                   <input
                     type="number"
