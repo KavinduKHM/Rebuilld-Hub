@@ -54,9 +54,12 @@ export const ResourceProvider = ({ children }) => {
     setError(null);
     try {
       const newItem = await resourceService.createInventory(data);
-      setInventory(prev => [...prev, newItem]);
-      setStats(resourceService.getInventoryStats([...inventory, newItem]));
-      setLowStockItems(resourceService.getLowStockItems([...inventory, newItem]));
+      setInventory(prev => {
+        const updatedInventory = [newItem, ...prev];
+        setStats(resourceService.getInventoryStats(updatedInventory));
+        setLowStockItems(resourceService.getLowStockItems(updatedInventory));
+        return updatedInventory;
+      });
       return newItem;
     } catch (err) {
       setError(err.message || 'Failed to create inventory');
@@ -72,12 +75,24 @@ export const ResourceProvider = ({ children }) => {
     setError(null);
     try {
       const updated = await resourceService.updateInventory(id, data);
-      const updatedInventory = inventory.map(item => 
-        item._id === id ? updated : item
-      );
-      setInventory(updatedInventory);
-      setStats(resourceService.getInventoryStats(updatedInventory));
-      setLowStockItems(resourceService.getLowStockItems(updatedInventory));
+
+      // Support APIs that may return a partial payload by merging with existing local item.
+      setInventory((prev) => {
+        const mergedInventory = prev.map((item) => {
+          if (item._id !== id) return item;
+          if (updated && typeof updated === 'object') {
+            return { ...item, ...updated };
+          }
+          return { ...item, ...data, updatedAt: new Date().toISOString() };
+        });
+
+        setStats(resourceService.getInventoryStats(mergedInventory));
+        setLowStockItems(resourceService.getLowStockItems(mergedInventory));
+        return mergedInventory;
+      });
+
+      // Ensure table reflects canonical backend values after redirect/navigation.
+      await fetchInventory();
       return updated;
     } catch (err) {
       setError(err.message || 'Failed to update inventory');

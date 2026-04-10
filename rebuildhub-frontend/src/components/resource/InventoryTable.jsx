@@ -23,22 +23,30 @@ const InventoryTable = ({
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [showAll, setShowAll] = useState(false);
+  const defaultVisibleRows = 10;
 
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
 
-  // Filter inventory
-  const filteredInventory = inventory.filter(item => {
-    const matchesCategory = categoryFilter === 'ALL' || item.category === categoryFilter;
-    const matchesStatus = statusFilter === 'ALL' || item.status === statusFilter;
-    const matchesSearch = !normalizedSearchTerm
-      || (item.name || '').toLowerCase().includes(normalizedSearchTerm)
-      || (item.inventoryCode || '').toLowerCase().includes(normalizedSearchTerm)
-      || (item.category || '').toLowerCase().includes(normalizedSearchTerm)
-      || (item.type || '').toLowerCase().includes(normalizedSearchTerm);
-    return matchesCategory && matchesStatus && matchesSearch;
-  });
+  // Filter inventory and prioritize newest updates so newly added items are immediately visible.
+  const filteredInventory = useMemo(() => {
+    const list = (inventory || []).filter((item) => {
+      const matchesCategory = categoryFilter === 'ALL' || item.category === categoryFilter;
+      const matchesStatus = statusFilter === 'ALL' || item.status === statusFilter;
+      const matchesSearch = !normalizedSearchTerm
+        || (item.name || '').toLowerCase().includes(normalizedSearchTerm)
+        || (item.inventoryCode || '').toLowerCase().includes(normalizedSearchTerm)
+        || (item.category || '').toLowerCase().includes(normalizedSearchTerm)
+        || (item.type || '').toLowerCase().includes(normalizedSearchTerm);
+      return matchesCategory && matchesStatus && matchesSearch;
+    });
+
+    return list.sort((a, b) => {
+      const aTime = new Date(a.updatedAt || a.createdAt || 0).getTime() || 0;
+      const bTime = new Date(b.updatedAt || b.createdAt || 0).getTime() || 0;
+      return bTime - aTime;
+    });
+  }, [inventory, categoryFilter, statusFilter, normalizedSearchTerm]);
 
   const categoryOptions = useMemo(() => {
     const values = new Set((inventory || []).map((item) => item.category).filter(Boolean));
@@ -50,10 +58,10 @@ const InventoryTable = ({
     return ['ALL', ...Array.from(values)];
   }, [inventory]);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedInventory = filteredInventory.slice(startIndex, startIndex + itemsPerPage);
+  const visibleCount = showAll
+    ? filteredInventory.length
+    : Math.min(defaultVisibleRows, filteredInventory.length);
+  const visibleInventory = filteredInventory.slice(0, visibleCount);
 
   const getStatusBadge = (status) => {
     const styles = {
@@ -148,14 +156,11 @@ const InventoryTable = ({
               type="text"
               placeholder="Search inventory"
               value={searchTerm}
-              onChange={(event) => {
-                setSearchTerm(event.target.value);
-                setCurrentPage(1);
-              }}
+              onChange={(event) => setSearchTerm(event.target.value)}
             />
           </label>
           <div className="resource-table__meta">
-            Viewing {Math.min(startIndex + itemsPerPage, filteredInventory.length)} of {filteredInventory.length}
+            Viewing {visibleCount} of {filteredInventory.length}
           </div>
         </div>
       </div>
@@ -174,7 +179,7 @@ const InventoryTable = ({
             </tr>
           </thead>
           <tbody>
-            {paginatedInventory.map((item) => (
+            {visibleInventory.map((item) => (
               <tr key={item._id}>
                 <td>
                   <div className="resource-table__item">
@@ -265,14 +270,16 @@ const InventoryTable = ({
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && currentPage < totalPages && (
+      {/* Expand/Collapse */}
+      {filteredInventory.length > defaultVisibleRows && (
         <div className="resource-table__footer">
           <button
             type="button"
-            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            onClick={() => setShowAll((prev) => !prev)}
           >
-            Load More Operations Data
+            {showAll
+              ? 'Show Less'
+              : `View All (${filteredInventory.length - defaultVisibleRows} more)`}
           </button>
         </div>
       )}
