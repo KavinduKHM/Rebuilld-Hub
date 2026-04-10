@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, CreditCard, Package, AlertCircle, User, Mail, DollarSign, Heart, Shield, TrendingDown, CheckCircle, AlertTriangle } from 'lucide-react';
+import { X, CreditCard, Package, User, DollarSign, Heart, Shield, TrendingDown, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const DonationForm = ({ initialItem, onClose }) => {
   const navigate = useNavigate();
@@ -8,6 +8,7 @@ const DonationForm = ({ initialItem, onClose }) => {
     donorName: '',
     donorNIC: '',
     email: '',
+    isInternational: false,
     type: initialItem?.type === 'MONEY' ? 'MONEY' : 'STOCK',
     inventoryId: initialItem?._id || '',
     name: initialItem?.name || '',
@@ -24,16 +25,11 @@ const DonationForm = ({ initialItem, onClose }) => {
   const [inventoryList, setInventoryList] = useState([]);
   const [moneyInventoryList, setMoneyInventoryList] = useState([]);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [donationResult, setDonationResult] = useState(null);
   const [isLowStock, setIsLowStock] = useState(false);
   const [selectedMoneyFund, setSelectedMoneyFund] = useState(initialItem || null);
 
   // Fetch inventory for stock selection if no initialItem
-  useEffect(() => {
-    fetchInventory();
-  }, []);
-
-  const fetchInventory = async () => {
+  const fetchInventory = useCallback(async () => {
     try {
       const response = await fetch('http://localhost:5000/Rebuildhub/inventory');
       const data = await response.json();
@@ -65,7 +61,11 @@ const DonationForm = ({ initialItem, onClose }) => {
     } catch (error) {
       console.error('Error fetching inventory:', error);
     }
-  };
+  }, [initialItem]);
+
+  useEffect(() => {
+    fetchInventory();
+  }, [fetchInventory]);
 
   const handleClose = () => {
     if (onClose) {
@@ -103,13 +103,17 @@ const DonationForm = ({ initialItem, onClose }) => {
   // Real-time validation functions
   const validateDonorName = (name) => {
     if (!name || name.trim() === '') return 'Donor name is required';
+    if (/\d/.test(name)) return 'Name cannot contain numbers';
     if (name.length < 2) return 'Name must be at least 2 characters';
     if (name.length > 100) return 'Name must be less than 100 characters';
     return null;
   };
 
-  const validateDonorNIC = (nic) => {
-    if (!nic || nic.trim() === '') return 'NIC is required';
+  const validateDonorNIC = (nic, isInternational) => {
+    if (!nic || nic.trim() === '') {
+      return isInternational ? 'ID / Passport number is required' : 'NIC is required';
+    }
+    if (isInternational) return null;
     if (!validateNIC(nic.trim())) return 'Please enter a valid Sri Lankan NIC (e.g., 123456789V or 123456789012)';
     return null;
   };
@@ -145,7 +149,7 @@ const DonationForm = ({ initialItem, onClose }) => {
         error = validateDonorName(formData.donorName);
         break;
       case 'donorNIC':
-        error = validateDonorNIC(formData.donorNIC);
+        error = validateDonorNIC(formData.donorNIC, formData.isInternational);
         break;
       case 'email':
         error = validateEmailField(formData.email);
@@ -162,12 +166,24 @@ const DonationForm = ({ initialItem, onClose }) => {
       case 'amount':
         error = validateAmount(formData.amount);
         break;
+      default:
+        break;
     }
     setErrors(prev => ({ ...prev, [fieldName]: error }));
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'donorName') {
+      const sanitizedValue = value.replace(/\d/g, '');
+      setFormData(prev => ({ ...prev, donorName: sanitizedValue }));
+      if (touched.donorName) {
+        const error = validateDonorName(sanitizedValue);
+        setErrors(prev => ({ ...prev, donorName: error }));
+      }
+      return;
+    }
     
     if (name === 'quantity') {
       if (value === '') {
@@ -202,7 +218,7 @@ const DonationForm = ({ initialItem, onClose }) => {
           error = validateDonorName(value);
           break;
         case 'donorNIC':
-          error = validateDonorNIC(value);
+          error = validateDonorNIC(value, formData.isInternational);
           break;
         case 'email':
           error = validateEmailField(value);
@@ -213,9 +229,21 @@ const DonationForm = ({ initialItem, onClose }) => {
         case 'amount':
           error = validateAmount(value);
           break;
+        default:
+          break;
       }
       setErrors(prev => ({ ...prev, [name]: error }));
     }
+  };
+
+  const handleInternationalToggle = (isInternational) => {
+    setFormData(prev => ({
+      ...prev,
+      isInternational,
+      donorNIC: ''
+    }));
+    setTouched(prev => ({ ...prev, donorNIC: false }));
+    setErrors(prev => ({ ...prev, donorNIC: null }));
   };
 
   const handleInventorySelect = (e) => {
@@ -271,7 +299,7 @@ const DonationForm = ({ initialItem, onClose }) => {
     const nameError = validateDonorName(formData.donorName);
     if (nameError) newErrors.donorName = nameError;
     
-    const nicError = validateDonorNIC(formData.donorNIC);
+    const nicError = validateDonorNIC(formData.donorNIC, formData.isInternational);
     if (nicError) newErrors.donorNIC = nicError;
     
     const emailError = validateEmailField(formData.email);
@@ -339,7 +367,6 @@ const DonationForm = ({ initialItem, onClose }) => {
 
       const result = await response.json();
       console.log('Donation successful:', result);
-      setDonationResult(result);
       setSubmitSuccess(true);
       
       setTimeout(() => {
@@ -434,6 +461,36 @@ const DonationForm = ({ initialItem, onClose }) => {
                 <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-blue-800 mb-1">
+                      Donor Type
+                    </label>
+                    <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1 border border-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => handleInternationalToggle(false)}
+                        className={`px-3 py-2 rounded-lg border text-sm font-semibold transition-all ${
+                          !formData.isInternational
+                            ? 'bg-blue-600 text-white border-blue-700 shadow-sm'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        Sri Lankan
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInternationalToggle(true)}
+                        className={`px-3 py-2 rounded-lg border text-sm font-semibold transition-all ${
+                          formData.isInternational
+                            ? 'bg-blue-600 text-white border-blue-700 shadow-sm'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        International
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-blue-800 mb-1">
                       Full Name <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
@@ -459,7 +516,8 @@ const DonationForm = ({ initialItem, onClose }) => {
 
                   <div>
                     <label className="block text-sm font-medium text-blue-800 mb-1">
-                      NIC Number <span className="text-red-500">*</span>
+                      {formData.isInternational ? 'ID / Passport Number' : 'NIC Number'}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -470,7 +528,7 @@ const DonationForm = ({ initialItem, onClose }) => {
                       className={`w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-blue-900 ${
                         errors.donorNIC && touched.donorNIC ? 'border-red-500' : 'border-blue-200'
                       }`}
-                      placeholder="e.g., 123456789V or 123456789012"
+                      placeholder={formData.isInternational ? 'Enter your ID or passport number' : 'e.g., 123456789V or 123456789012'}
                     />
                     {errors.donorNIC && touched.donorNIC && (
                       <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
@@ -705,7 +763,7 @@ const DonationForm = ({ initialItem, onClose }) => {
                     <span className="text-blue-900 font-medium">{formData.donorName || 'Not provided'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-blue-600">NIC:</span>
+                    <span className="text-blue-600">{formData.isInternational ? 'ID / Passport:' : 'NIC:'}</span>
                     <span className="text-blue-900 font-medium">{formData.donorNIC || 'Not provided'}</span>
                   </div>
                   <div className="flex justify-between">
