@@ -3,15 +3,38 @@ const Inventory = require("../../models/resourceModel/InventoryModel");
 // -----------------------------
 // Generate Inventory Code
 // -----------------------------
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const normalizeCodeToken = (value, fallback) => {
+  const token = String(value || "")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase()
+    .slice(0, 4);
+  return token || fallback;
+};
+
 const generateInventoryCode = async (type, category, name) => {
   const typePart = type === "MONEY" ? "MNY" : "STK";
-   const categoryPart = type === "STOCK" ? category.substring(0, 4).toUpperCase() : "NONE";
-  const namePart = name.substring(0, 4).toUpperCase();
+  const categoryPart = type === "STOCK"
+    ? normalizeCodeToken(category, "CATG")
+    : "NONE";
+  const namePart = normalizeCodeToken(name, "ITEM");
 
-  const count = await Inventory.countDocuments({ type, category, name });
-  const runningNumber = String(count + 1).padStart(3, "0");
+  const prefix = `INV-${typePart}-${categoryPart}-${namePart}`;
+  const existingForPrefix = await Inventory.countDocuments({
+    inventoryCode: new RegExp(`^${escapeRegExp(prefix)}-`),
+  });
 
-  return `INV-${typePart}-${categoryPart}-${namePart}-${runningNumber}`;
+  let runningNumber = existingForPrefix + 1;
+  let codeCandidate = `${prefix}-${String(runningNumber).padStart(3, "0")}`;
+
+  // Avoid collisions with legacy/manual records by probing until a free code is found.
+  while (await Inventory.exists({ inventoryCode: codeCandidate })) {
+    runningNumber += 1;
+    codeCandidate = `${prefix}-${String(runningNumber).padStart(3, "0")}`;
+  }
+
+  return codeCandidate;
 };
 
 // -----------------------------
@@ -35,21 +58,33 @@ const updateStatus = (inventory) => {
 // CREATE
 // -----------------------------
 exports.createInventory = async (data) => {
-  data.inventoryCode = await generateInventoryCode(
-    data.type,
-    data.category,
-    data.name
-  );
-
   if (data.type === "STOCK") data.totalQuantity = data.totalQuantity || 0;
   if (data.type === "MONEY") data.totalAmount = data.totalAmount || 0;
 
-  const inventory = new Inventory(data);
-  updateStatus(inventory);
+  // Retry on unique-key race conditions for inventoryCode.
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const inventoryCode = await generateInventoryCode(
+      data.type,
+      data.category,
+      data.name
+    );
 
-  await inventory.save();
+    const inventory = new Inventory({ ...data, inventoryCode });
+    updateStatus(inventory);
 
-  return cleanInventoryResponse(inventory); // return cleaned response
+    try {
+      await inventory.save();
+      return cleanInventoryResponse(inventory); // return cleaned response
+    } catch (error) {
+      const isDuplicateCode =
+        error?.code === 11000 &&
+        (error?.keyPattern?.inventoryCode || error?.keyValue?.inventoryCode);
+
+      if (!isDuplicateCode || attempt === 4) {
+        throw error;
+      }
+    }
+  }
 };
 
 
