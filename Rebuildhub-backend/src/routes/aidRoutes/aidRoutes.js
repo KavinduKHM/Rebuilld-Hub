@@ -4,11 +4,9 @@ const aidController = require("../../controllers/aidController/aidController");
 const authMiddleware = require("../../middlewares/authMiddleware");
 const roleMiddleware = require("../../middlewares/roleMiddleware");
 
-// Create aid: allowed for seeker, inventory_manager, admin
+// Create aid: public (no auth required)
 router.post(
     "/",
-    authMiddleware,
-    roleMiddleware("seeker", "inventory_manager", "admin"),
     aidController.createAid
 );
 
