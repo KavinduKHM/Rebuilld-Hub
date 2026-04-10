@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+const ALLOWED_AID_TYPES = ["Food", "Cloth", "Sanitory", "Money"];
+
 // Aid Schema
 const aidSchema = new mongoose.Schema(
 {
@@ -12,12 +14,23 @@ const aidSchema = new mongoose.Schema(
 
     aidType: {
         type: String,
-        required: true
+        enum: ALLOWED_AID_TYPES,
+        required: true,
+        trim: true
     },
 
     quantity: {
         type: Number,
-        required: true
+        required: true,
+        min: 1
+    },
+
+    quantityUnit: {
+        type: String,
+        enum: ["PEOPLE", "RUPEES"],
+        default: function () {
+            return this.aidType === "Money" ? "RUPEES" : "PEOPLE";
+        }
     },
 
     location: {
@@ -54,6 +67,11 @@ const aidSchema = new mongoose.Schema(
         type: String,
         enum: ["PENDING", "IN_PROGRESS", "COMPLETED"],
         default: "PENDING"
+    },
+
+    inventoryDeducted: {
+        type: Boolean,
+        default: false
     }
 
 },
