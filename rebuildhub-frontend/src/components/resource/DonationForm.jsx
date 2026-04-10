@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, CreditCard, Package, AlertCircle, User, Mail, DollarSign, Heart, Shield, TrendingDown, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useAlert } from '../../context/AlertContext';
+import { API_BASE_URL } from '../../services/api';
 
 const DonationForm = ({ initialItem, onClose }) => {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ const DonationForm = ({ initialItem, onClose }) => {
   // Fetch inventory for stock selection if no initialItem
   const fetchInventory = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5000/Rebuildhub/inventory');
+      const response = await fetch(`${API_BASE_URL}/Rebuildhub/inventory`);
       const data = await response.json();
       
       // Filter STOCK items and sort: low stock first
@@ -354,7 +355,7 @@ const DonationForm = ({ initialItem, onClose }) => {
 
       console.log('Submitting donation:', submitData);
 
-      const response = await fetch('http://localhost:5000/Rebuildhub/donations', {
+      const response = await fetch(`${API_BASE_URL}/Rebuildhub/donations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

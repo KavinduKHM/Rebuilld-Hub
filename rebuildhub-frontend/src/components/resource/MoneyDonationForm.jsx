@@ -4,6 +4,7 @@ import {
   Heart, CreditCard, X, Lock, AlertTriangle, Globe, Loader2
 } from 'lucide-react';
 import { useAlert } from '../../context/AlertContext';
+import { API_BASE_URL } from '../../services/api';
 
 // Exchange rates for display
 const exchangeRates = {
@@ -268,7 +269,7 @@ const MoneyDonationFormInner = ({ initialFund, onClose, onSuccess, availableFund
         originalAmount: formData.isInternational ? parseFloat(formData.amount) : null,
       };
 
-      const response = await fetch('http://localhost:5000/Rebuildhub/donations/create-checkout-session', {
+      const response = await fetch(`${API_BASE_URL}/Rebuildhub/donations/create-checkout-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(donationData),
@@ -658,7 +659,7 @@ const MoneyDonationForm = ({ initialFund, onClose, onSuccess }) => {
 
   const fetchAvailableFunds = async () => {
     try {
-      const response = await fetch('http://localhost:5000/Rebuildhub/inventory');
+      const response = await fetch(`${API_BASE_URL}/Rebuildhub/inventory`);
       const data = await response.json();
       const moneyFunds = data.filter(item => item.type === 'MONEY');
       setAvailableFunds(moneyFunds);

@@ -1,7 +1,9 @@
-const API_BASE_URL = 'http://localhost:5000/api/volunteers';
+import { API_BASE_URL } from "./api";
+
+const VOLUNTEER_BASE_URL = `${API_BASE_URL}/api/volunteers`;
 
 export const registerVolunteer = async (formData) => {
-	const response = await fetch(`${API_BASE_URL}/register`, {
+	const response = await fetch(`${VOLUNTEER_BASE_URL}/register`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',

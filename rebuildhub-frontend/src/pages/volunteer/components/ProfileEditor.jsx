@@ -1,6 +1,7 @@
 // src/pages/volunteer/components/ProfileEditor.jsx
 import React, { useState } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../../../services/api";
 
 const isObjectId = (value) => /^[0-9a-fA-F]{24}$/.test((value || "").toString());
 
@@ -77,7 +78,7 @@ const ProfileEditor = ({ volunteer, onUpdate, onClose }) => {
 
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/volunteers/${volunteerId}`,
+        `${API_BASE_URL}/api/volunteers/${volunteerId}`,
         payload,
       );
       setMessage({ type: "success", text: "Profile updated successfully!" });

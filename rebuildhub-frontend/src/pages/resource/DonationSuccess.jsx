@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle, Heart, Loader2, AlertTriangle } from 'lucide-react';
 import { useAlert } from '../../context/AlertContext';
+import { API_BASE_URL } from '../../services/api';
 
 const DonationSuccess = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const DonationSuccess = () => {
   const verifyPayment = async (sessionId, donationId) => {
     try {
       console.log("Calling verify API...");
-      const response = await fetch(`http://localhost:5000/Rebuildhub/donations/verify-payment?session_id=${sessionId}&donation_id=${donationId}`);
+      const response = await fetch(`${API_BASE_URL}/Rebuildhub/donations/verify-payment?session_id=${sessionId}&donation_id=${donationId}`);
       const result = await response.json();
       
       console.log("Verify response:", result);
