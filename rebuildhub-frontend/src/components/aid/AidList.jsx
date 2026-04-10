@@ -13,7 +13,7 @@ import {
 	MdOutlineLocationOn,
 	MdOutlineRefresh,
 } from "react-icons/md";
-import { FaFirstAid, FaHome, FaTint, FaTshirt, FaUtensils, FaHandsHelping } from "react-icons/fa";
+import { FaFirstAid, FaTshirt, FaUtensils, FaHandsHelping, FaMoneyBillWave } from "react-icons/fa";
 
 const asText = (value) => (value ?? "").toString().trim();
 
@@ -23,10 +23,9 @@ const isCompletedRequest = (aid) =>
 const getAidIcon = (aidType) => {
 	const normalized = asText(aidType).toUpperCase();
 	if (normalized === "FOOD") return <FaUtensils />;
-	if (normalized === "WATER") return <FaTint />;
-	if (normalized === "MEDICINE") return <FaFirstAid />;
-	if (normalized === "SHELTER") return <FaHome />;
-	if (normalized === "CLOTHING") return <FaTshirt />;
+	if (normalized === "CLOTH") return <FaTshirt />;
+	if (normalized === "SANITORY") return <FaFirstAid />;
+	if (normalized === "MONEY") return <FaMoneyBillWave />;
 	return <FaHandsHelping />;
 };
 
@@ -35,6 +34,10 @@ const AidList = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [completedAids, setCompletedAids] = useState([]);
+	const [selectedAidType, setSelectedAidType] = useState("ALL");
+	const [selectedRange, setSelectedRange] = useState("ALL");
+	const [currentPage, setCurrentPage] = useState(1);
+	const pageSize = 6;
 
 	useEffect(() => {
 		fetchCompletedAids();
@@ -58,6 +61,104 @@ const AidList = () => {
 	const handleLogout = () => {
 		clearAuthSession();
 		navigate("/", { replace: true });
+	};
+
+	const aidTypeOptions = [
+		"ALL",
+		...Array.from(new Set(completedAids.map((item) => asText(item.aidType).toUpperCase()).filter(Boolean))),
+	];
+
+	const rangeOptions = ["ALL", "30D", "7D"];
+
+	const filteredAids = completedAids.filter((aid) => {
+		const normalizedAidType = asText(aid.aidType).toUpperCase();
+		if (selectedAidType !== "ALL" && normalizedAidType !== selectedAidType) {
+			return false;
+		}
+
+		if (selectedRange === "ALL") {
+			return true;
+		}
+
+		const createdTime = new Date(aid.createdAt).getTime();
+		if (Number.isNaN(createdTime)) {
+			return true;
+		}
+
+		const days = selectedRange === "7D" ? 7 : 30;
+		const threshold = Date.now() - days * 24 * 60 * 60 * 1000;
+		return createdTime >= threshold;
+	});
+
+	const totalPages = Math.max(1, Math.ceil(filteredAids.length / pageSize));
+	const safePage = Math.min(currentPage, totalPages);
+	const paginatedAids = filteredAids.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [selectedAidType, selectedRange, completedAids.length]);
+
+	const cycleAidTypeFilter = () => {
+		setSelectedAidType((prev) => {
+			const currentIndex = aidTypeOptions.indexOf(prev);
+			const nextIndex = (currentIndex + 1) % aidTypeOptions.length;
+			return aidTypeOptions[nextIndex];
+		});
+	};
+
+	const cycleTimeRange = () => {
+		setSelectedRange((prev) => {
+			const currentIndex = rangeOptions.indexOf(prev);
+			const nextIndex = (currentIndex + 1) % rangeOptions.length;
+			return rangeOptions[nextIndex];
+		});
+	};
+
+	const exportCsv = () => {
+		const rows = filteredAids.map((aid) => ({
+			id: aid._id || "",
+			damageReportId: aid.damageReportId || "",
+			aidType: aid.aidType || "",
+			quantity: aid.quantity ?? "",
+			quantityUnit: aid.quantityUnit || "",
+			city: aid.location?.city || "",
+			district: aid.location?.district || "",
+			province: aid.location?.province || "",
+			country: aid.location?.country || "",
+			createdAt: aid.createdAt || "",
+		}));
+
+		const headers = [
+			"id",
+			"damageReportId",
+			"aidType",
+			"quantity",
+			"quantityUnit",
+			"city",
+			"district",
+			"province",
+			"country",
+			"createdAt",
+		];
+
+		const csv = [
+			headers.join(","),
+			...rows.map((row) =>
+				headers
+					.map((header) => `"${String(row[header] ?? "").replace(/"/g, '""')}"`)
+					.join(",")
+			),
+		].join("\n");
+
+		const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.setAttribute("download", "completed-aid-requests.csv");
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
 	};
 
 	return (
@@ -93,7 +194,7 @@ const AidList = () => {
 						</p>
 					</div>
 					<div className="admin-topbar__meta">
-						<span>Total completed: {completedAids.length}</span>
+						<span>Total completed: {filteredAids.length}</span>
 					</div>
 				</header>
 
@@ -109,11 +210,11 @@ const AidList = () => {
 									</p>
 								</div>
 								<div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", alignItems: "center" }}>
-									<button type="button" className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
-										<MdOutlineFilterList /> Filter
+									<button type="button" className="btn-secondary" onClick={cycleAidTypeFilter} style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+										<MdOutlineFilterList /> Filter: {selectedAidType === "ALL" ? "All" : selectedAidType}
 									</button>
-									<button type="button" className="btn-secondary">All Time</button>
-									<button type="button" className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+									<button type="button" className="btn-secondary" onClick={cycleTimeRange}>{selectedRange === "ALL" ? "All Time" : `Last ${selectedRange.replace("D", " Days")}`}</button>
+									<button type="button" className="btn-secondary" onClick={exportCsv} style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
 										<MdOutlineFileDownload /> Export CSV
 									</button>
 									<Link to="/admin/aid-requests" className="btn-secondary">Back to Active</Link>
@@ -128,11 +229,11 @@ const AidList = () => {
 							<Loader />
 						) : error ? (
 							<p className="empty-state" style={{ color: "#b4232c" }}>{error}</p>
-						) : completedAids.length === 0 ? (
+						) : filteredAids.length === 0 ? (
 							<p className="empty-state">No completed aid requests yet.</p>
 						) : (
 							<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1rem" }}>
-								{completedAids.map((aid) => (
+								{paginatedAids.map((aid) => (
 									<article key={aid._id} className="page-card" style={{ padding: "1rem", border: "1px solid rgba(191, 219, 254, 0.72)" }}>
 										<div style={{ display: "grid", gap: "0.65rem" }}>
 											<div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: "0.8rem" }}>
@@ -166,7 +267,9 @@ const AidList = () => {
 											<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
 												<div>
 													<p style={{ margin: 0, fontSize: "0.62rem", color: "#6f84b0", textTransform: "uppercase", letterSpacing: "0.08em" }}>Quantity</p>
-													<strong style={{ fontSize: "1.2rem", color: "#13294f" }}>{aid.quantity ?? "-"}</strong>
+													<strong style={{ fontSize: "1.2rem", color: "#13294f" }}>
+														{aid.quantity ?? "-"} {aid.quantityUnit === "RUPEES" || asText(aid.aidType).toUpperCase() === "MONEY" ? "LKR" : "Units"}
+													</strong>
 												</div>
 												<div>
 													<p style={{ margin: 0, fontSize: "0.62rem", color: "#6f84b0", textTransform: "uppercase", letterSpacing: "0.08em" }}>Resource Type</p>
@@ -197,15 +300,29 @@ const AidList = () => {
 						)}
 
 						<div className="page-card" style={{ marginTop: "1rem", padding: "0.8rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", color: "#5f79ab" }}>
-							<button type="button" className="btn-secondary" style={{ padding: "0.45rem 0.8rem" }}>Previous</button>
+							<button
+								type="button"
+								className="btn-secondary"
+								style={{ padding: "0.45rem 0.8rem" }}
+								onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+								disabled={safePage <= 1}
+							>
+								Previous
+							</button>
 							<div style={{ display: "inline-flex", gap: "0.35rem", alignItems: "center" }}>
-								<span style={{ width: "1.75rem", height: "1.75rem", borderRadius: "8px", background: "#2563eb", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "0.85rem" }}>1</span>
-								<span style={{ width: "1.75rem", height: "1.75rem", borderRadius: "8px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem" }}>2</span>
-								<span style={{ width: "1.75rem", height: "1.75rem", borderRadius: "8px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem" }}>3</span>
-								<span style={{ padding: "0 0.3rem", fontSize: "0.85rem" }}>...</span>
-								<span style={{ width: "1.75rem", height: "1.75rem", borderRadius: "8px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem" }}>12</span>
+								<span style={{ width: "1.75rem", height: "1.75rem", borderRadius: "8px", background: "#2563eb", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "0.85rem" }}>{safePage}</span>
+								<span style={{ padding: "0 0.3rem", fontSize: "0.85rem" }}>/</span>
+								<span style={{ width: "1.75rem", height: "1.75rem", borderRadius: "8px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem" }}>{totalPages}</span>
 							</div>
-							<button type="button" className="btn-secondary" style={{ padding: "0.45rem 0.8rem" }}>Next</button>
+							<button
+								type="button"
+								className="btn-secondary"
+								style={{ padding: "0.45rem 0.8rem" }}
+								onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+								disabled={safePage >= totalPages}
+							>
+								Next
+							</button>
 						</div>
 					</div>
 				</section>

@@ -1,4 +1,4 @@
-const Inventory = require("../../models/resourceModel/InventoryModel");
+const Inventory = require("../../models/resourceModel/inventoryModel");
 
 // -----------------------------
 // Generate Inventory Code
