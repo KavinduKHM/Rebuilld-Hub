@@ -9,9 +9,9 @@
 ![alt text](image-2.png)
 ![alt text](image-3.png)
 
-# rebuildhub-frontend
+# RebuildHub
 
-Frontend SPA for RebuildHub built with React. This application provides role-based dashboards and UI workflows for disasters, reports, aid, volunteers, weather, resources, and donations.
+Frontend SPA for RebuildHub built with React. Backend with Node. This application provides role-based dashboards and UI workflows for disasters, reports, aid, volunteers, weather, resources, and donations.
 
 ## 1. Local Setup Guide (Step by Step)
 
@@ -845,6 +845,14 @@ Open the provided URL (e.g., https://rebuildhub-frontend.onrender.com).
 
 Check the browser’s network tab – API calls should go to your live backend and return 200.
 
+## 13. Third Party API s used
+
+- Cloudinary
+- Google Map API
+- Stripe
+- Weather API
+- NASA EONET API
+- Twilo
 
 ## 14. Notes
 
