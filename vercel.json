@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
+  "buildCommand": "cd rebuildhub-frontend && npm run build",
+  "installCommand": "cd rebuildhub-frontend && npm install",
   "framework": "vite",
-  "outputDirectory": "dist"
+  "outputDirectory": "rebuildhub-frontend/dist"
 }
