@@ -1,10 +1,10 @@
 services:
-	- type: web
-		name: rebuildhub-frontend
-		env: static
-		buildCommand: npm install && npm run build
-		staticPublishPath: dist
-		routes:
-			- type: rewrite
-				source: /*
-				destination: /index.html
+  - type: static_site
+    name: rebuildhub-frontend
+    rootDir: rebuildhub-frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
