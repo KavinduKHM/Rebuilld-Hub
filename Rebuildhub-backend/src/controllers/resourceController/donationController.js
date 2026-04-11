@@ -58,7 +58,7 @@ exports.createCheckoutSession = async (req, res) => {
     
     // Create Stripe Checkout Session
     const frontendUrl = process.env.FRONTEND_URL || 'https://rebuilld-hub-frontend.onrender.com';
-    let frontendBaseUrl = 'http://localhost:3000';
+    let frontendBaseUrl = 'https://rebuilld-hub-frontend.onrender.com';
 
     try {
       // Use only origin so env values like http://localhost:3000/resources don't duplicate paths.
