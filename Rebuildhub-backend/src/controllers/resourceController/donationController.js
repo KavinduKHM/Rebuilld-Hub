@@ -57,7 +57,7 @@ exports.createCheckoutSession = async (req, res) => {
     console.log("✅ Donation saved with ID:", savedDonation._id);
     
     // Create Stripe Checkout Session
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://rebuilld-hub-frontend.onrender.com';
     let frontendBaseUrl = 'http://localhost:3000';
 
     try {
