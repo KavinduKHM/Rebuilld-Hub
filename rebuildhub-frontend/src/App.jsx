@@ -113,7 +113,7 @@ const AppShell = () => {
         <Route path="/disasters" element={<DisasterPage />} />
         <Route path="/disasters/new" element={<DisasterForm />} />
         <Route
-          path="/resources"
+          path="/resources1"
           element={
             
               <ResourcePage />
