@@ -1,70 +1,191 @@
-# Getting Started with Create React App
+# rebuildhub-frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Frontend SPA for RebuildHub built with React. This application provides role-based dashboards and UI workflows for disasters, reports, aid, volunteers, weather, resources, and donations.
 
-## Available Scripts
+## 1. Local Setup Guide (Step by Step)
 
-In the project directory, you can run:
+### 1.1 Prerequisites
 
-### `npm start`
+- Node.js 18+ (LTS recommended)
+- npm 9+
+- Running backend API at `http://localhost:5000`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 1.2 Clone and Install
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+1. Open terminal.
+2. Clone and enter frontend folder:
 
-### `npm test`
+```bash
+git clone <your-repository-url>
+cd Rebuilld-Hub/rebuildhub-frontend
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+3. Install dependencies:
 
-### `npm run build`
+```bash
+npm install
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 1.3 Environment Configuration
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Current implementation uses hardcoded backend URLs (`http://localhost:5000`) in service and component calls.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+No mandatory frontend `.env` keys are currently required to run local development.
 
-### `npm run eject`
+### 1.4 Run the Frontend
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Use Vite dev server:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+npm run dev
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Alternative script available:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm start
+```
 
-## Learn More
+### 1.5 Verify Startup
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- App should open in browser.
+- Home page should load.
+- Admin login page should be reachable at `/admin/login`.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 2. Frontend Route Documentation
 
-### Code Splitting
+The app uses React Router with a ProtectedRoute role guard.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+| Path | Access | Purpose |
+| --- | --- | --- |
+| `/` | Public | Home page |
+| `/admin/login` | Public | Admin and staff login |
+| `/dashboard` | Admin only | Admin dashboard |
+| `/admin/dashboard` | Admin only | Admin dashboard alias |
+| `/admin/aid-requests` | Admin only | Aid approval workflow |
+| `/admin/aid-completed` | Admin only | Completed aid list |
+| `/admin/resources` | Admin only | Resource management |
+| `/admin/donations` | Admin only | Donation administration |
+| `/inventory/dashboard` | Inventory manager only | Inventory manager dashboard |
+| `/volunteer/dashboard` | Volunteer only | Volunteer dashboard |
+| `/volunteer/apply` | Public | Volunteer registration |
+| `/admin/volunteers` | Admin only | Volunteer management |
+| `/disasters` | Public | Disaster list |
+| `/disasters/new` | Public | Create disaster form |
+| `/disasters/:id` | Public | Disaster details |
+| `/reports/new` | Public | Damage report submission |
+| `/damage/:id` | Public | Damage report details |
+| `/aid/verified-reports` | Public | Verified reports list |
+| `/aid/request` | Public | Aid request form |
+| `/weather` | Public | Weather dashboard |
+| `/resources` | Public | Resource listing and donation navigation |
+| `/donate` | Public | Donation form |
+| `/donate/:itemId` | Public | Donation form for selected item |
+| `/donation-success` | Authenticated user | Post-payment success page |
 
-### Analyzing the Bundle Size
+## 3. API Endpoint Documentation (Used by Frontend)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Frontend calls backend at `http://localhost:5000`.
 
-### Making a Progressive Web App
+### 3.1 Authentication
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+| Method | Endpoint | Used For | Auth |
+| --- | --- | --- | --- |
+| POST | `/api/auth/login` | Login from admin login and auth context | Public |
+| POST | `/api/auth/register` | Registration call in auth context | Public |
 
-### Advanced Configuration
+Response typically includes token and user object.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### 3.2 Disaster and Damage Modules
 
-### Deployment
+| Method | Endpoint | Used For | Auth |
+| --- | --- | --- | --- |
+| GET | `/api/disasters` | Disaster list | Public |
+| GET | `/api/disasters/:id` | Disaster detail | Public |
+| POST | `/api/disasters` | Create disaster with images | Public |
+| PUT | `/api/disasters/:id` | Update disaster | Public |
+| PATCH | `/api/disasters/verify/:id` | Verify disaster | Bearer + admin |
+| DELETE | `/api/disasters/:id` | Delete disaster | Public |
+| POST | `/api/disasters/:id/assign-volunteer` | Assign volunteer | Public |
+| GET | `/api/reports/disaster/:disasterId` | List reports for a disaster | Public |
+| GET | `/api/reports/:id` | Report detail | Public |
+| POST | `/api/reports` | Submit report with images | Public |
+| PATCH | `/api/reports/verify/:id` | Verify report | Bearer + admin |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### 3.3 Aid Module
 
-### `npm run build` fails to minify
+| Method | Endpoint | Used For | Auth |
+| --- | --- | --- | --- |
+| POST | `/api/aids` | Submit aid request | Public |
+| GET | `/api/aids` | View aid requests | Bearer |
+| PUT | `/api/aids/:id/admin-decision` | Admin approval/rejection | Bearer + admin |
+| PUT | `/api/aids/:id/distribution` | Update distribution status | Bearer + admin |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### 3.4 Volunteer and Events
+
+| Method | Endpoint | Used For | Auth |
+| --- | --- | --- | --- |
+| POST | `/api/volunteers/register` | Volunteer apply form | Public |
+| GET | `/api/volunteers` | Volunteer lists | Public |
+| GET | `/api/volunteers/:id` | Volunteer profile fetch | Public |
+| PUT | `/api/volunteers/:id` | Volunteer updates/verification | Public |
+| DELETE | `/api/volunteers/:id` | Volunteer delete | Public |
+| GET | `/api/events` | Stored event feeds | Public |
+| GET | `/api/events/live` | Live event feed | Public |
+| GET | `/api/events/categories` | Category options | Public |
+| POST | `/api/events/:id/interest` | Express volunteer interest | Public |
+
+### 3.5 Weather and Resources
+
+| Method | Endpoint | Used For | Auth |
+| --- | --- | --- | --- |
+| GET | `/api/weather` | Current weather | Public |
+| GET | `/api/weather/forecast` | Forecast | Public |
+| GET | `/Rebuildhub/inventory` | Display resources/inventory | Public |
+| POST | `/Rebuildhub/inventory` | Create inventory | Bearer + admin |
+| PUT | `/Rebuildhub/inventory/:id` | Update inventory | Bearer + admin |
+| DELETE | `/Rebuildhub/inventory/:id` | Delete inventory | Bearer + admin |
+| POST | `/Rebuildhub/donations` | Record donation | Public |
+| GET | `/Rebuildhub/donations` | Donation listing | Public |
+| GET | `/Rebuildhub/donations/verify-payment` | Verify Stripe return session | Public |
+| POST | `/Rebuildhub/donations/create-checkout-session` | Start Stripe checkout | Public |
+
+## 4. Authentication and Session Handling
+
+- JWT token is stored in localStorage.
+- Axios API client attaches bearer token automatically when token exists.
+- ProtectedRoute checks:
+	- token existence
+	- optional allowed roles
+- Unauthorized users are redirected to home route.
+
+## 5. Example API Calls from Frontend Flow
+
+```bash
+# Login
+curl -X POST http://localhost:5000/api/auth/login \
+	-H "Content-Type: application/json" \
+	-d '{"email":"admin@example.com","password":"123456"}'
+
+# Load resources page inventory
+curl http://localhost:5000/Rebuildhub/inventory
+
+# Volunteer registration
+curl -X POST http://localhost:5000/api/volunteers/register \
+	-H "Content-Type: application/json" \
+	-d '{"name":"Test","email":"t@example.com","phone":"0771234567","district":"Colombo","skills":["First Aid"]}'
+```
+
+## 6. Build and Test Commands
+
+```bash
+npm run dev
+npm run build
+npm test
+```
+
+## 7. Notes
+
+- Frontend currently mixes Axios and Fetch calls.
+- Base backend URL is currently hardcoded in multiple files.
+- For production readiness, centralizing base URL in env variables is recommended.
